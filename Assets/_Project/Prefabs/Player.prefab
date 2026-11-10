@@ -314,15 +314,19 @@ GameObject:
   - component: {fileID: 1562044743220047101}
   - component: {fileID: 7229047378612497}
   - component: {fileID: 7437286237535550958}
-  - component: {fileID: 8365387490131430803}
-  - component: {fileID: 3976006875083338762}
   - component: {fileID: 4787963496386320859}
   - component: {fileID: 661602430477188922}
+  - component: {fileID: 8365387490131430803}
+  - component: {fileID: 3976006875083338762}
   - component: {fileID: 4236708205918996739}
   - component: {fileID: 4650319364668734911}
   - component: {fileID: 4314746876469004738}
   - component: {fileID: 8767409743459523834}
   - component: {fileID: 873133312779174151}
+  - component: {fileID: 2411371644918232595}
+  - component: {fileID: 3833123080488787223}
+  - component: {fileID: 2184156478946455306}
+  - component: {fileID: 8041881281464414891}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -479,6 +483,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: BossFight.Player::BossFight.Player.PlayerMovement
   config: {fileID: 11400000, guid: 18c58e58b19fe8248b4dfa1f2a662e10, type: 2}
   motor: {fileID: 6126267457546541204}
+--- !u!114 &4787963496386320859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2476272ce60a154ebdfbe88fac9eabf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Combat::BossFight.Combat.Health
+  max: 100
+--- !u!114 &661602430477188922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf6b38e7ec83aaa4aa19d15e11693e99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Combat::BossFight.Combat.DamageReceiver
 --- !u!114 &8365387490131430803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -518,31 +547,11 @@ MonoBehaviour:
   reach: 0.45
   height: 1.1
   restPitch: -50
---- !u!114 &4787963496386320859
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3419861734185966653}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2476272ce60a154ebdfbe88fac9eabf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BossFight.Combat::BossFight.Combat.Health
-  max: 100
---- !u!114 &661602430477188922
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3419861734185966653}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf6b38e7ec83aaa4aa19d15e11693e99, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BossFight.Combat::BossFight.Combat.DamageReceiver
+  overheadPitch: -104
+  chopEndPitch: 58
+  chopGripHeight: 1.32
+  cockBackFactor: 1.3
+  cockBackPortion: 0.6
 --- !u!114 &4236708205918996739
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -578,6 +587,7 @@ MonoBehaviour:
   - {fileID: 8512182068957186606}
   flashColor: {r: 1, g: 1, b: 1, a: 1}
   parryFlashColor: {r: 0.15, g: 1, b: 0.95, a: 1}
+  finisherFlashColor: {r: 1, g: 0.78, b: 0.24, a: 1}
   duration: 0.1
 --- !u!114 &4314746876469004738
 MonoBehaviour:
@@ -659,6 +669,96 @@ MonoBehaviour:
   hitStopDuration: 0.035
   hitImpulse: 0.12
   parryImpulse: 0.22
+  finisherHitStop: 0.25
+  finisherImpulse: 0.32
+--- !u!114 &2411371644918232595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bc7ad424004ef446bbcd46658bc1112, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.ImpactVfx
+  material: {fileID: 2100000, guid: a01c5d4d052b6a24f95c7fb34b2e3a1e, type: 2}
+  hitColor: {r: 1, g: 0.85, b: 0.55, a: 1}
+  blockColor: {r: 0.45, g: 0.75, b: 1, a: 1}
+  parryColor: {r: 1, g: 0.8, b: 0.25, a: 1}
+  dodgeColor: {r: 0.25, g: 0.95, b: 1, a: 1}
+  baseSparkCount: 10
+  sparksPerDamage: 0.5
+  maxSparkCount: 70
+  ringIntensity: 3
+  flashIntensity: 14
+  flashDuration: 0.14
+--- !u!114 &3833123080488787223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47c26a2589799f54b9b5fe9f32c33b07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.CombatSfx
+  hitboxes:
+  - {fileID: 3063143530650580976}
+  receiver: {fileID: 661602430477188922}
+  swingVolume: 0.35
+  impactVolume: 0.8
+  defenseVolume: 0.7
+  pitchJitter: 0.08
+  basePitch: 1
+--- !u!114 &2184156478946455306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02b3646a70947d745b991fca95858920, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.WeaponTrail
+  hitbox: {fileID: 3063143530650580976}
+  basePoint: {fileID: 8968552999436940768}
+  tipPoint: {fileID: 4525684049125940070}
+  material: {fileID: 2100000, guid: a01c5d4d052b6a24f95c7fb34b2e3a1e, type: 2}
+  color: {r: 0.1, g: 0.9, b: 1, a: 1}
+  brightness: 0.4
+  lifetime: 0.16
+  subdivisions: 4
+  baseAlpha: 0.15
+--- !u!114 &8041881281464414891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dd0edc4fe9bb2c408a3d9210afb4655, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.AfterImageTrail
+  sources:
+  - {fileID: 3767945649029551829}
+  - {fileID: 5268022057509699793}
+  material: {fileID: 2100000, guid: a01c5d4d052b6a24f95c7fb34b2e3a1e, type: 2}
+  color: {r: 0.1, g: 0.9, b: 1, a: 1}
+  intensity: 0.7
+  speedThreshold: 7
+  teleportDistance: 2.5
+  teleportGhosts: 4
+  interval: 0.05
+  lifetime: 0.32
+  poolSize: 12
 --- !u!1 &5916577488820978131
 GameObject:
   m_ObjectHideFlags: 0

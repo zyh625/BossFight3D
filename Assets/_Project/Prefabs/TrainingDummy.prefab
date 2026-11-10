@@ -18,6 +18,8 @@ GameObject:
   - component: {fileID: 2437096726603552605}
   - component: {fileID: 2335465444003317258}
   - component: {fileID: 4328248772000087475}
+  - component: {fileID: 5914526279112589137}
+  - component: {fileID: 1353849446224455845}
   m_Layer: 8
   m_Name: TrainingDummy
   m_TagString: Untagged
@@ -107,6 +109,7 @@ MonoBehaviour:
   - {fileID: 4430879528283189918}
   flashColor: {r: 1, g: 1, b: 1, a: 1}
   parryFlashColor: {r: 0.15, g: 1, b: 0.95, a: 1}
+  finisherFlashColor: {r: 1, g: 0.78, b: 0.24, a: 1}
   duration: 0.1
 --- !u!114 &6995359020398840516
 MonoBehaviour:
@@ -221,6 +224,50 @@ MonoBehaviour:
   hitStopDuration: 0.035
   hitImpulse: 0.12
   parryImpulse: 0.22
+  finisherHitStop: 0.25
+  finisherImpulse: 0.32
+--- !u!114 &5914526279112589137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2028453392922678968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bc7ad424004ef446bbcd46658bc1112, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.ImpactVfx
+  material: {fileID: 2100000, guid: a01c5d4d052b6a24f95c7fb34b2e3a1e, type: 2}
+  hitColor: {r: 1, g: 0.85, b: 0.55, a: 1}
+  blockColor: {r: 0.45, g: 0.75, b: 1, a: 1}
+  parryColor: {r: 1, g: 0.8, b: 0.25, a: 1}
+  dodgeColor: {r: 0.25, g: 0.95, b: 1, a: 1}
+  baseSparkCount: 10
+  sparksPerDamage: 0.5
+  maxSparkCount: 70
+  ringIntensity: 3
+  flashIntensity: 14
+  flashDuration: 0.14
+--- !u!114 &1353849446224455845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2028453392922678968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47c26a2589799f54b9b5fe9f32c33b07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.CombatSfx
+  hitboxes: []
+  receiver: {fileID: 7059994440025308958}
+  swingVolume: 0.35
+  impactVolume: 0.8
+  defenseVolume: 0.7
+  pitchJitter: 0.08
+  basePitch: 1
 --- !u!1 &4392798396029915136
 GameObject:
   m_ObjectHideFlags: 0

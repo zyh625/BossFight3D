@@ -19,6 +19,8 @@ namespace BossFight.Player
     /// </summary>
     public sealed class InputBuffer
     {
+        private const float MaxTickSeconds = 0.05f;
+
         private readonly float window;
         private PlayerCommand command;
         private float remaining;
@@ -46,7 +48,9 @@ namespace BossFight.Player
                 return;
             }
 
-            remaining -= dt;
+            // 单帧最多扣这么多：一次偶发的长卡顿（加载、首次渲染某个特效）不应该把玩家刚按下的指令直接作废。
+            // 缓冲的意义是"玩家看到的这段画面里按键有效"，卡住的那一帧玩家并没有多出反应时间。
+            remaining -= dt < MaxTickSeconds ? dt : MaxTickSeconds;
             if (remaining <= 0f)
             {
                 command = PlayerCommand.None;

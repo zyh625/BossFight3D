@@ -36,6 +36,7 @@ namespace BossFight.EditorTools
                 EditorWiring.SetRef(boss, "config", CombatDataBuilder.GetOrCreateBossCombatConfig());
                 EditorWiring.SetRef(boss, "weapons", weapons);
                 WireSkills(root);
+                WireEffects(root, weapons.Hitbox);
 
                 ProjectPaths.EnsureFolderFor(ProjectPaths.BossPrefab);
                 return PrefabUtility.SaveAsPrefabAsset(root, ProjectPaths.BossPrefab);
@@ -44,6 +45,26 @@ namespace BossFight.EditorTools
             {
                 Object.DestroyImmediate(root);
             }
+        }
+
+        /// <summary>表现层（M7）：双剑刀光、命中特效与音效、瞬移和后撤的残影。</summary>
+        private static void WireEffects(GameObject root, Hitbox hitbox)
+        {
+            Transform visual = root.transform.Find("Visual");
+            Transform swords = root.transform.Find("Sockets");
+
+            CombatFeedbackBuilder.AddHitEffects(root, new[] { hitbox }, 0.8f);
+            foreach (Transform sword in swords)
+            {
+                Transform trailBase = Child(sword, "Trail_Base");
+                Transform trailTip = Child(sword, "Trail_Tip");
+                trailBase.localPosition = Vector3.forward * 0.25f;
+                trailTip.localPosition = Vector3.forward * 2.05f;
+                CombatFeedbackBuilder.AddWeaponTrail(root, hitbox, trailBase, trailTip, ArenaMaterials.NeonMagenta);
+            }
+
+            // 追击速度 3.8 m/s，后撤约 20 m/s：阈值取中间，只有后撤和瞬移会留残影
+            CombatFeedbackBuilder.AddAfterImages(root, new[] { visual, swords }, ArenaMaterials.NeonMagenta, 10f);
         }
 
         internal static void WireSkills(GameObject root)

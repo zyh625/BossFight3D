@@ -90,6 +90,10 @@ namespace BossFight.EditorTools
             }
 
             CombatFeedbackBuilder.AddImpact(root);
+            if (!root.TryGetComponent<ImpactVfx>(out _))
+            {
+                CombatFeedbackBuilder.AddHitEffects(root, System.Array.Empty<Hitbox>());
+            }
         }
     }
 }

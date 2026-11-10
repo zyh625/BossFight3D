@@ -34,6 +34,10 @@ namespace BossFight.Tests
         [UnitySetUp]
         public IEnumerator SetUp()
         {
+            // 批处理模式不限帧率时能跑到几千帧/秒，模拟的按键偶尔不会被识别为"本帧按下"。
+            // 限定到接近真实游玩的帧率，让用例的时序稳定。
+            Application.targetFrameRate = 120;
+
             input.Setup();
             mouse = InputSystem.AddDevice<Mouse>();
             keyboard = InputSystem.AddDevice<Keyboard>();
@@ -66,6 +70,7 @@ namespace BossFight.Tests
         [TearDown]
         public void TearDown()
         {
+            Application.targetFrameRate = -1;
             input.TearDown();
         }
 

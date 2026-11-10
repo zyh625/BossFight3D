@@ -109,6 +109,13 @@ namespace BossFight.EditorTools
                 AddHurtbox(root);
                 WireM3(root);
 
+                // 表现层（M7）：刀光、命中特效与音效、翻滚残影。阈值 7 m/s 介于奔跑（6.5）和翻滚（7.5）之间
+                Transform swordRoot = weaponHitbox.transform;
+                CombatFeedbackBuilder.AddHitEffects(root, new[] { weaponHitbox });
+                CombatFeedbackBuilder.AddWeaponTrail(root, weaponHitbox,
+                    swordRoot.Find("Hitbox_Base"), swordRoot.Find("Hitbox_Tip"), ArenaMaterials.NeonCyan);
+                CombatFeedbackBuilder.AddAfterImages(root, new[] { visualRoot, sockets }, ArenaMaterials.NeonCyan, 7f);
+
                 ProjectPaths.EnsureFolderFor(ProjectPaths.PlayerPrefab);
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, ProjectPaths.PlayerPrefab);
                 Debug.Log($"[BossFight] 已生成 {ProjectPaths.PlayerPrefab}（Visual：{(usesModel ? "Mixamo 人偶" : "占位胶囊体")}）");
