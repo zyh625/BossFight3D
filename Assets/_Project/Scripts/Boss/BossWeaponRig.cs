@@ -16,6 +16,7 @@ namespace BossFight.Boss
         [SerializeField] private Hitbox hitbox;
 
         private MaterialPropertyBlock colorBlock;
+        private bool phaseTwo;
 
         public Hitbox Hitbox => hitbox;
 
@@ -28,7 +29,15 @@ namespace BossFight.Boss
             rightSword.localPosition = new Vector3(0.7f, 1.18f, 0.15f);
             leftSword.localRotation = Quaternion.Euler(-26f, -30f, 0f);
             rightSword.localRotation = Quaternion.Euler(-26f, 30f, 0f);
-            Signal(new Color(0.7f, 0.06f, 0.4f) * 2f);
+            Signal(phaseTwo ? new Color(1f, 0.07f, 0.6f) * 4f : new Color(0.06f, 0.85f, 1f) * 2f);
+        }
+
+        public void SetPhaseTwo() => phaseTwo = true;
+
+        public void WaveCharge(float fraction)
+        {
+            Pose(rightSword, 72f, 32f);
+            Signal(new Color(0.12f, 0.9f, 1f) * Mathf.Lerp(2f, 7f, fraction));
         }
 
         public void Windup(int index, float fraction)

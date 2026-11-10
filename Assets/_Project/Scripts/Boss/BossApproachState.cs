@@ -16,9 +16,10 @@ namespace BossFight.Boss
             Vector3 direction = boss.DirectionToTarget();
             float distance = direction.magnitude;
             boss.Motor.Face(direction, boss.Config.TurnSpeed, dt);
-            if (boss.Brain.CanStartCombo(distance, boss.ActionTime))
+            BossMove move = boss.Brain.ChooseAttack(distance, boss.ActionTime, boss.SkillVisuals != null);
+            if (move != BossMove.None)
             {
-                boss.ToCombo();
+                boss.ToMove(move);
                 return;
             }
 

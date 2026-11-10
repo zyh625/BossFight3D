@@ -17,6 +17,8 @@ namespace BossFight.Character
 
         private CharacterController controller;
         private float verticalVelocity;
+        private Vector3 pushVelocity;
+        private float pushRemaining;
 
         /// <summary>上一次 Move 之后实际发生的水平速度（撞墙时会小于期望速度）。</summary>
         public Vector3 PlanarVelocity { get; private set; }
@@ -45,12 +47,21 @@ namespace BossFight.Character
 
             verticalVelocity += gravity * dt;
 
-            Vector3 motion = (planarVelocity + Vector3.up * verticalVelocity) * dt;
+            float pushStep = Mathf.Min(dt, pushRemaining);
+            pushRemaining -= pushStep;
+            Vector3 motion = (planarVelocity + Vector3.up * verticalVelocity) * dt + pushVelocity * pushStep;
             controller.Move(motion);
 
             Vector3 actual = controller.velocity;
             actual.y = 0f;
             PlanarVelocity = actual;
+        }
+
+        public void Push(Vector3 direction, float distance, float duration)
+        {
+            direction.y = 0f;
+            pushRemaining = duration;
+            pushVelocity = duration > 0f ? direction.normalized * (distance / duration) : Vector3.zero;
         }
 
         /// <summary>以固定角速度把角色转向某个水平方向。</summary>
@@ -73,6 +84,7 @@ namespace BossFight.Character
             transform.position = position;
             controller.enabled = true;
             verticalVelocity = 0f;
+            pushRemaining = 0f;
             PlanarVelocity = Vector3.zero;
         }
     }

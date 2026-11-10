@@ -21,8 +21,57 @@ MonoBehaviour:
   turnSpeed: 540
   aimLockLead: 0.15
   comboCooldown: 1.5
+  comboWeight: 1
   hitStun: 0.25
   brokenDuration: 3.5
   guardedDamageScale: 0.2
   brokenDamageScale: 1.5
   brokenHeavyDamageScale: 2.5
+  skills:
+    blinkSlash:
+      rule:
+        minDistance: 7
+        maxDistance: 0
+        cooldown: 8
+        weight: 1
+      windup: 0.8
+      hover: 0.4
+      height: 4
+      active: 0.2
+      recovery: 1.2
+      radius: 2.5
+      damage: 32
+    swordWave:
+      rule:
+        minDistance: 4
+        maxDistance: 14
+        cooldown: 6
+        weight: 1
+      windup: 0.7
+      recovery: 0.8
+      speed: 18
+      width: 1.6
+      range: 14
+      nearDamage: 28
+      farDamage: 10
+    retreat:
+      rule:
+        minDistance: 0
+        maxDistance: 0
+        cooldown: 4
+        weight: 1
+      duration: 0.25
+      distance: 5
+      recovery: 0.3
+      chainWindow: 2
+      baseChance: 0.1
+      chancePerHit: 0.15
+      maxChance: 0.6
+    phase:
+      healthThreshold: 0.5
+      duration: 2
+      burstRadius: 4
+      knockbackDistance: 2.5
+      knockbackDuration: 0.22
+      cooldownScale: 0.65
+      quickStrikeWindupScale: 0.85

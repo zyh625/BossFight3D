@@ -18,11 +18,23 @@ namespace BossFight.Tests
         private BossController boss;
         private DamageReceiver player;
         private CharacterMotor playerMotor;
+        private BossSkillSettings skills;
+        private BossMoveRule blinkRule;
+        private BossMoveRule waveRule;
+        private BossMoveRule retreatRule;
 
         [UnitySetUp]
         public IEnumerator SetUp()
         {
-            yield return SceneManager.LoadSceneAsync("Arena", LoadSceneMode.Single);
+            SceneManager.sceneLoaded += SelectComboOnly;
+            try
+            {
+                yield return SceneManager.LoadSceneAsync("Arena", LoadSceneMode.Single);
+            }
+            finally
+            {
+                SceneManager.sceneLoaded -= SelectComboOnly;
+            }
             yield return null;
             boss = Object.FindAnyObjectByType<BossController>();
             Assert.IsNotNull(boss, "Arena 应默认启用 Boss");
@@ -35,6 +47,23 @@ namespace BossFight.Tests
         public void TearDown()
         {
             Time.timeScale = 1f;
+            if (skills != null)
+            {
+                skills.blinkSlash.rule = blinkRule;
+                skills.swordWave.rule = waveRule;
+                skills.retreat.rule = retreatRule;
+            }
+        }
+
+        private void SelectComboOnly(Scene scene, LoadSceneMode mode)
+        {
+            skills = Object.FindAnyObjectByType<BossController>().Config.Skills;
+            blinkRule = skills.blinkSlash.rule;
+            waveRule = skills.swordWave.rule;
+            retreatRule = skills.retreat.rule;
+            skills.blinkSlash.rule.weight = 0f;
+            skills.swordWave.rule.weight = 0f;
+            skills.retreat.rule.weight = 0f;
         }
 
         [UnityTest]

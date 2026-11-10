@@ -40,7 +40,9 @@ namespace BossFight.Combat
         /// <summary>攻击被识破：无伤害。</summary>
         Parried,
         /// <summary>被无敌帧躲过：无伤害。</summary>
-        Dodged
+        Dodged,
+        /// <summary>目标处于转阶段保护，命中不会扣血。</summary>
+        Invulnerable
     }
 
     /// <summary>一次命中的"输出"：经过结算管线之后实际发生了什么。特效、音效、UI 都读它。</summary>

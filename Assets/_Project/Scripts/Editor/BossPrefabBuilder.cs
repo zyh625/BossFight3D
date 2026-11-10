@@ -35,6 +35,7 @@ namespace BossFight.EditorTools
                 var boss = root.AddComponent<BossController>();
                 EditorWiring.SetRef(boss, "config", CombatDataBuilder.GetOrCreateBossCombatConfig());
                 EditorWiring.SetRef(boss, "weapons", weapons);
+                WireSkills(root);
 
                 ProjectPaths.EnsureFolderFor(ProjectPaths.BossPrefab);
                 return PrefabUtility.SaveAsPrefabAsset(root, ProjectPaths.BossPrefab);
@@ -43,6 +44,38 @@ namespace BossFight.EditorTools
             {
                 Object.DestroyImmediate(root);
             }
+        }
+
+        internal static void WireSkills(GameObject root)
+        {
+            if (root.TryGetComponent<BossSkillVisuals>(out _))
+            {
+                return;
+            }
+
+            Transform visuals = Child(root.transform, "SkillVisuals");
+            var ring = Child(visuals, "ImpactRing").gameObject.AddComponent<LineRenderer>();
+            ring.useWorldSpace = true;
+            ring.loop = true;
+            ring.widthMultiplier = 0.095f;
+            ring.sharedMaterial = ArenaMaterials.NeonAccent;
+            ring.enabled = false;
+
+            Transform trailPoint = Child(visuals, "RetreatTrail");
+            trailPoint.localPosition = Vector3.up * 1.1f;
+            var trail = trailPoint.gameObject.AddComponent<TrailRenderer>();
+            trail.time = 0.23f;
+            trail.widthCurve = AnimationCurve.Linear(0f, 0.8f, 1f, 0f);
+            trail.sharedMaterial = ArenaMaterials.NeonStrip;
+            trail.emitting = false;
+
+            var skills = root.AddComponent<BossSkillVisuals>();
+            EditorWiring.SetRef(skills, "ring", ring);
+            EditorWiring.SetRef(skills, "retreatTrail", trail);
+            EditorWiring.SetRef(skills, "waveMaterial", ArenaMaterials.NeonStrip);
+            EditorWiring.Edit(skills, "environmentLayers", p => p.intValue = 1 << LayerSetup.Get(LayerSetup.Environment));
+            EditorWiring.Edit(skills, "hurtboxLayers", p => p.intValue = 1 << LayerSetup.Get(LayerSetup.Hurtbox));
+            EditorWiring.SetRef(root.GetComponent<BossController>(), "skillVisuals", skills);
         }
 
         private static void AddHurtbox(Transform root, DamageReceiver receiver)

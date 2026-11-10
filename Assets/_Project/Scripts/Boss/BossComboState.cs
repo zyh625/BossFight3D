@@ -4,16 +4,17 @@ using UnityEngine;
 
 namespace BossFight.Boss
 {
-    internal sealed class BossComboState : IState
+    internal sealed class BossComboState : IState, IBossWindup
     {
         private readonly BossController boss;
         private AttackData strike;
         private float elapsed;
+        private float windup;
         private bool opened;
         private bool sampledEnd;
 
         public int Index { get; private set; }
-        public float WindupRemaining => strike != null ? Mathf.Max(0f, strike.Windup - elapsed) : 0f;
+        public float WindupRemaining => Mathf.Max(0f, windup - elapsed);
 
         public BossComboState(BossController boss) => this.boss = boss;
 
@@ -21,8 +22,8 @@ namespace BossFight.Boss
 
         public void Tick(float dt)
         {
-            float activeEnd = strike.Windup + strike.Active;
-            if (elapsed < strike.Windup - boss.Config.AimLockLead)
+            float activeEnd = windup + strike.Active;
+            if (elapsed < windup - boss.Config.AimLockLead)
             {
                 boss.Motor.Face(boss.DirectionToTarget(), boss.Config.TurnSpeed, dt);
             }
@@ -32,9 +33,9 @@ namespace BossFight.Boss
             boss.Motor.Move(boss.transform.forward * (travel / dt), dt);
             elapsed += dt;
 
-            if (elapsed < strike.Windup)
+            if (elapsed < windup)
             {
-                boss.Weapons.Windup(Index, elapsed / strike.Windup);
+                boss.Weapons.Windup(Index, elapsed / windup);
                 return;
             }
 
@@ -48,7 +49,7 @@ namespace BossFight.Boss
 
             if (!sampledEnd)
             {
-                float fraction = Mathf.Clamp01((elapsed - strike.Windup) / Mathf.Max(0.01f, strike.Active));
+                float fraction = Mathf.Clamp01((elapsed - windup) / Mathf.Max(0.01f, strike.Active));
                 boss.Weapons.Swing(Index, fraction);
                 sampledEnd = elapsed >= activeEnd;
                 // 留给 LateUpdate 一次扫掠，即使低帧率跳过了整个判定段。
@@ -60,7 +61,7 @@ namespace BossFight.Boss
                 boss.Weapons.Hitbox.End();
                 boss.Weapons.Rest();
             }
-            if (elapsed >= strike.Duration)
+            if (elapsed >= activeEnd + strike.Recovery)
             {
                 if (Index + 1 < boss.Config.ComboLength)
                 {
@@ -76,13 +77,13 @@ namespace BossFight.Boss
         public void Exit()
         {
             boss.Weapons.Hitbox.End();
-            boss.Brain.FinishCombo(boss.ActionTime);
         }
 
         private void StartStrike(int index)
         {
             Index = index;
             strike = boss.Config.GetStrike(index);
+            windup = strike.Windup * (boss.IsPhaseTwo && index < 2 ? boss.Config.Skills.phase.quickStrikeWindupScale : 1f);
             elapsed = 0f;
             opened = false;
             sampledEnd = false;

@@ -159,6 +159,10 @@ namespace BossFight.DevTools
             Health health = current.Health;
             var rect = new Rect((Screen.width - 500f) * 0.5f, 40f, 500f, 18f);
             string label = bossActive ? "暗影剑客" : "木桩";
+            if (bossActive && boss.IsPhaseTwo)
+            {
+                label += " · 二阶段";
+            }
             DrawBar(rect, health.Current / health.Max, new Color(1f, 0.25f, 0.4f),
                 $"{label} {health.Current:0}/{health.Max:0}");
 
@@ -192,10 +196,19 @@ namespace BossFight.DevTools
                 BossStatus.FightOver => "玩家倒下",
                 BossStatus.Broken => "破防",
                 BossStatus.Staggered => "出招被打断",
+                BossStatus.BlinkSlash => SkillStatus("瞬身斩"),
+                BossStatus.SwordWave => SkillStatus("剑气"),
+                BossStatus.Retreat => "后撤瞬身",
+                BossStatus.PhaseTransition => $"转阶段保护 {boss.PhaseTransitionRemaining:0.00}s",
                 BossStatus.Combo => $"三连斩 {boss.StrikeNumber}/{boss.ComboLength}  "
                     + (boss.WindupRemaining > 0f ? $"前摇 {boss.WindupRemaining:0.00}s" : boss.IsStriking ? "挥砍" : "收招"),
                 _ => boss.CanGuard ? "追击 / 格挡" : "虚弱"
             };
+        }
+
+        private string SkillStatus(string name)
+        {
+            return boss.WindupRemaining > 0f ? $"{name}  前摇 {boss.WindupRemaining:0.00}s" : $"{name}  收招";
         }
 
         private void DrawBar(Rect rect, float ratio, Color color, string label)

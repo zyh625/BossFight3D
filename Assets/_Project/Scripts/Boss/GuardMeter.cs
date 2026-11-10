@@ -37,6 +37,13 @@ namespace BossFight.Boss
             IsWeak = true;
         }
 
+        internal void Restore()
+        {
+            Current = max;
+            IsWeak = false;
+            delay = 0f;
+        }
+
         internal void Tick(float dt)
         {
             if (IsWeak)
