@@ -1,9 +1,11 @@
+using BossFight.Character;
 using BossFight.Combat;
 using UnityEngine;
 
 namespace BossFight.DevTools
 {
     /// <summary>训练木桩：被打"死"之后过一会儿自动回满血，方便反复测试。</summary>
+    [DefaultExecutionOrder(10)]
     public sealed class TrainingDummy : MonoBehaviour
     {
         [SerializeField] private Health health;
@@ -19,17 +21,29 @@ namespace BossFight.DevTools
 
         private float reviveTimer;
         private float attackTimer;
+        private LocalHitStop hitStop;
 
         public bool IsWindingUp { get; private set; }
         public float WindupRemaining => IsWindingUp ? attackTimer : 0f;
 
+        private void Awake()
+        {
+            hitStop = GetComponent<LocalHitStop>();
+        }
+
         private void Update()
         {
+            float dt = hitStop != null ? hitStop.DeltaTime : Time.deltaTime;
+            if (dt <= 0f)
+            {
+                return;
+            }
+
             if (health.IsDead)
             {
                 IsWindingUp = false;
                 attackTimer = 0f;
-                reviveTimer += Time.deltaTime;
+                reviveTimer += dt;
                 if (reviveTimer >= reviveDelay)
                 {
                     reviveTimer = 0f;
@@ -45,7 +59,7 @@ namespace BossFight.DevTools
                 return;
             }
 
-            attackTimer -= Time.deltaTime;
+            attackTimer -= dt;
             if (attackTimer > 0f)
             {
                 return;

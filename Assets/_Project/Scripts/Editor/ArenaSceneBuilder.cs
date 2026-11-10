@@ -221,8 +221,29 @@ namespace BossFight.EditorTools
             var orbitInput = rig.AddComponent<OrbitCameraInput>();
             EditorWiring.SetRef(orbitInput, "input", input);
             EditorWiring.SetRef(orbitInput, "orbital", orbital);
+            WireCombatCamera(orbitInput, player.GetComponent<LockOnTargeting>());
 
             rig.AddComponent<CursorLocker>();
+        }
+
+        internal static void WireCombatCamera(OrbitCameraInput orbitInput, LockOnTargeting targeting)
+        {
+            var cmCamera = orbitInput.GetComponent<CinemachineCamera>();
+            Transform aim = cmCamera.LookAt;
+            if (aim == null || aim == cmCamera.Follow)
+            {
+                aim = new GameObject("CombatAim").transform;
+                aim.position = cmCamera.Follow.position;
+            }
+
+            cmCamera.LookAt = aim;
+            EditorWiring.SetRef(orbitInput, "targeting", targeting);
+            EditorWiring.SetRef(orbitInput, "lockAim", aim);
+
+            if (!orbitInput.TryGetComponent<CinemachineImpulseListener>(out _))
+            {
+                orbitInput.gameObject.AddComponent<CinemachineImpulseListener>();
+            }
         }
 
         /// <summary>场地中央放一个训练木桩，并接好调试显示。M4 起这个位置换成 Boss。</summary>

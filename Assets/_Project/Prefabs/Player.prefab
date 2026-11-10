@@ -318,6 +318,11 @@ GameObject:
   - component: {fileID: 3976006875083338762}
   - component: {fileID: 4787963496386320859}
   - component: {fileID: 661602430477188922}
+  - component: {fileID: 4236708205918996739}
+  - component: {fileID: 4650319364668734911}
+  - component: {fileID: 4314746876469004738}
+  - component: {fileID: 8767409743459523834}
+  - component: {fileID: 873133312779174151}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -538,6 +543,122 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf6b38e7ec83aaa4aa19d15e11693e99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BossFight.Combat::BossFight.Combat.DamageReceiver
+--- !u!114 &4236708205918996739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61c1def742bad2b459842cc4e071b063, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Player::BossFight.Player.LockOnTargeting
+  acquireDistance: 14
+  releaseDistance: 18
+  occlusionLayers:
+    serializedVersion: 2
+    m_Bits: 128
+--- !u!114 &4650319364668734911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f95da87d017fe7b4693bab15cd3e7a36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.HitFlash
+  receiver: {fileID: 661602430477188922}
+  renderers:
+  - {fileID: 1240969228327611839}
+  - {fileID: 8512182068957186606}
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  parryFlashColor: {r: 0.15, g: 1, b: 0.95, a: 1}
+  duration: 0.1
+--- !u!114 &4314746876469004738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dc9c0b2be42be24a9464a56d441fa63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Character::BossFight.Character.LocalHitStop
+--- !u!114 &8767409743459523834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 180ecf9b41d478f468eb3e9083753217, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseSource
+  ImpulseDefinition:
+    ImpulseChannel: 1
+    ImpulseShape: 2
+    CustomImpulseShape:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    ImpulseDuration: 0.12
+    ImpulseType: 0
+    DissipationRate: 0.25
+    RawSignal: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    RepeatMode: 0
+    Randomize: 1
+    TimeEnvelope:
+      AttackShape:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      DecayShape:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      AttackTime: 0
+      SustainTime: 0.2
+      DecayTime: 0.7
+      ScaleWithImpact: 1
+      HoldForever: 0
+    ImpactRadius: 100
+    DirectionMode: 0
+    DissipationMode: 2
+    DissipationDistance: 100
+    PropagationSpeed: 343
+  DefaultVelocity: {x: 0, y: -1, z: 0}
+--- !u!114 &873133312779174151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fe616cf930668b44aea6237928b45da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.CombatImpactFeedback
+  hitStopDuration: 0.035
+  hitImpulse: 0.12
+  parryImpulse: 0.22
 --- !u!1 &5916577488820978131
 GameObject:
   m_ObjectHideFlags: 0

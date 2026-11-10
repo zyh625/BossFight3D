@@ -20,6 +20,7 @@ namespace BossFight.Tests
     {
         private readonly InputTestFixture input = new InputTestFixture();
         private Mouse mouse;
+        private Keyboard keyboard;
         private PlayerController player;
         private Stamina stamina;
         private Health dummyHealth;
@@ -32,14 +33,17 @@ namespace BossFight.Tests
         {
             input.Setup();
             mouse = InputSystem.AddDevice<Mouse>();
+            keyboard = InputSystem.AddDevice<Keyboard>();
 
             yield return SceneManager.LoadSceneAsync("Arena", LoadSceneMode.Single);
             yield return null;
 
-            player = Object.FindFirstObjectByType<PlayerController>();
+            player = Object.FindAnyObjectByType<PlayerController>();
             stamina = player.GetComponent<Stamina>();
             playerReceiver = player.GetComponent<DamageReceiver>();
-            dummyReceiver = Object.FindFirstObjectByType<TrainingDummy>().GetComponent<DamageReceiver>();
+            var dummy = Object.FindAnyObjectByType<TrainingDummy>();
+            dummy.enabled = false; // 用例精确控制来袭时刻，独立于场景的陪练开关。
+            dummyReceiver = dummy.GetComponent<DamageReceiver>();
             lastDummyHit = default;
             dummyReceiver.Damaged += result => lastDummyHit = result;
             dummyHealth = dummyReceiver.Health;
@@ -159,7 +163,6 @@ namespace BossFight.Tests
             Assert.AreEqual(playerReceiver.Health.Max, playerReceiver.Health.Current);
             Assert.AreEqual(staminaAfterCharging, stamina.Current, 0.01f);
             Assert.AreEqual(3f, stamina.FreeSpendingRemaining, 0.01f);
-            Assert.AreEqual(HitOutcome.Hit, HitPlayer().Outcome, "每次出招只识破一次");
             input.Release(mouse.rightButton);
 
             yield return new WaitForSeconds(0.2f);
@@ -177,11 +180,22 @@ namespace BossFight.Tests
         }
 
         [UnityTest]
-        public IEnumerator HoldingChargeTakesDamage_ReleasedHeavyCanSeeThrough()
+        public IEnumerator HoldingChargeTakesDamageAndCancelsTheHeavy()
         {
             input.Press(mouse.rightButton);
             yield return new WaitForSeconds(0.25f);
             Assert.AreEqual(HitOutcome.Hit, HitPlayer().Outcome, "蓄力过程没有格挡或识破");
+            Assert.AreEqual("PlayerHitState", player.CurrentStateName);
+            input.Release(mouse.rightButton);
+            yield return new WaitForSeconds(0.65f);
+            Assert.AreEqual(dummyHealth.Max, dummyHealth.Current, "受击打断的蓄力不能在松键时出招");
+        }
+
+        [UnityTest]
+        public IEnumerator ReleasedHeavyCanSeeThrough()
+        {
+            input.Press(mouse.rightButton);
+            yield return new WaitForSeconds(0.25f);
             input.Release(mouse.rightButton);
             yield return null;
 
@@ -203,15 +217,104 @@ namespace BossFight.Tests
             yield return new WaitForSeconds(0.21f);
             Assert.AreEqual(HitOutcome.Hit, HitPlayer().Outcome);
             Assert.IsFalse(stamina.HasFreeSpending);
+            Assert.AreEqual("PlayerHitState", player.CurrentStateName);
 
             yield return new WaitForSeconds(0.4f);
-            Assert.AreEqual(32f, lastDummyHit.FinalDamage, 0.01f);
+            Assert.AreEqual(dummyHealth.Max, dummyHealth.Current, "前摇中受击应打断切手技");
+        }
+
+        [UnityTest]
+        public IEnumerator SeeThroughProtectsAgainstOnlyOneHit()
+        {
+            input.Press(mouse.rightButton);
+            yield return new WaitForSeconds(0.1f);
+            yield return Click();
+
+            Assert.AreEqual(HitOutcome.Parried, HitPlayer().Outcome);
+            Assert.AreEqual(HitOutcome.Hit, HitPlayer().Outcome);
+            Assert.AreEqual("PlayerHitState", player.CurrentStateName);
+            input.Release(mouse.rightButton);
+        }
+
+        [UnityTest]
+        public IEnumerator HitStopIsLocal_AndHitStunCanBeCancelledByRoll()
+        {
+            yield return Click();
+            var playerClock = player.GetComponent<LocalHitStop>();
+            var dummyClock = dummyReceiver.GetComponent<LocalHitStop>();
+            float globalTimeScale = Time.timeScale;
+            double hitTime = playerClock.ActionTime;
+
+            Assert.AreEqual(HitOutcome.Hit, HitPlayer().Outcome);
+            Assert.AreEqual("PlayerHitState", player.CurrentStateName);
+            Assert.IsTrue(playerClock.IsFrozen);
+            Assert.IsTrue(dummyClock.IsFrozen);
+            Assert.AreEqual(globalTimeScale, Time.timeScale);
+            yield return new WaitUntil(() => !playerClock.IsFrozen);
+            Assert.AreEqual(hitTime, playerClock.ActionTime, 0.03d);
+
+            yield return new WaitUntil(() => playerClock.ActionTime - hitTime >= 0.21);
+            Assert.AreEqual("PlayerHitState", player.CurrentStateName);
+            input.Press(keyboard.spaceKey);
+            yield return null;
+            input.Release(keyboard.spaceKey);
+            yield return new WaitForSeconds(0.1f);
+            Assert.AreEqual("PlayerRollState", player.CurrentStateName);
+            Assert.AreEqual(dummyHealth.Max, dummyHealth.Current, "被打断的轻击不能残留命中");
+        }
+
+        [UnityTest]
+        public IEnumerator MiddleClickLocksCameraAndMovement_AndTargetDeathUnlocks()
+        {
+            var motor = player.GetComponent<CharacterMotor>();
+            motor.Teleport(new Vector3(0f, 0f, -5f));
+            var targeting = player.GetComponent<LockOnTargeting>();
+            var target = dummyReceiver.GetComponent<LockOnTarget>();
+            player.transform.rotation = Quaternion.Euler(0f, 60f, 0f);
+            yield return new WaitForSeconds(0.3f);
+
+            input.Press(mouse.middleButton);
+            yield return null;
+            input.Release(mouse.middleButton);
+            yield return new WaitForSeconds(0.25f);
+            Assert.AreSame(target, targeting.Target);
+            AssertInFrame(player.CameraTarget.position);
+            AssertInFrame(target.AimPoint);
+
+            input.Press(keyboard.dKey);
+            yield return new WaitForSeconds(0.22f);
+            Assert.AreEqual(Vector2.right, player.GetComponent<PlayerInputReader>().Move);
+            input.Release(keyboard.dKey);
+            Assert.Greater(player.transform.position.x, 0.3f);
+            Vector3 facing = target.transform.position - player.transform.position;
+            facing.y = 0f;
+            Assert.Greater(Vector3.Dot(player.transform.forward, facing.normalized), 0.98f);
+
+            input.Press(mouse.middleButton);
+            yield return null;
+            input.Release(mouse.middleButton);
+            Assert.IsNull(targeting.Target);
+            yield return null;
+            input.Press(mouse.middleButton);
+            yield return null;
+            input.Release(mouse.middleButton);
+            Assert.AreSame(target, targeting.Target);
+            dummyHealth.ApplyDamage(dummyHealth.Max);
+            yield return null;
+            Assert.IsNull(targeting.Target);
+        }
+
+        private static void AssertInFrame(Vector3 position)
+        {
+            Vector3 point = Camera.main.WorldToViewportPoint(position);
+            Assert.Greater(point.z, 0f);
+            Assert.That(point.x, Is.InRange(0f, 1f));
+            Assert.That(point.y, Is.InRange(0f, 1f));
         }
 
         [UnityTest]
         public IEnumerator Roll_InvulnerabilityRefundsOnlyOnce()
         {
-            var keyboard = InputSystem.AddDevice<Keyboard>();
             input.Press(keyboard.spaceKey);
             yield return null;
             input.Release(keyboard.spaceKey);

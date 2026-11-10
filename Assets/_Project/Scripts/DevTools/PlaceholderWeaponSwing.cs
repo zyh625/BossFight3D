@@ -28,9 +28,11 @@ namespace BossFight.DevTools
         private float elapsed;
         private bool swinging;
         private float fromAngle;
+        private LocalHitStop hitStop;
 
         private void Start()
         {
+            hitStop = GetComponent<LocalHitStop>();
             if (visual.HasHumanoid)
             {
                 enabled = false;
@@ -82,7 +84,7 @@ namespace BossFight.DevTools
                 return;
             }
 
-            elapsed += Time.deltaTime;
+            elapsed += hitStop != null ? hitStop.DeltaTime : Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
             ApplyPose(Mathf.Lerp(fromAngle, -fromAngle, t), 0f);
         }

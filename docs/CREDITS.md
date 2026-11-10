@@ -40,6 +40,7 @@
 | M2 | Great Sword Idle（举剑蓄力的静止姿势，任意持剑待机均可） | — | `HeavyCharge.fbx` |
 | M2 | Great Sword Overhead Slash / Sword And Shield Attack（自上而下的重劈） | — | `Heavy.fbx` |
 | M3 | Forward Roll（向前翻滚，可选） | 有 In Place 时勾选 | `Roll.fbx` |
+| M3 | Hit Reaction（受击反应，可选） | 有 In Place 时勾选 | `Hit.fbx` |
 
 M2 的 5 个攻击动画是可选的：缺哪个，对应的动作就没有动画但玩法照常。攻击动画会被自动调整播放速度，
 使其总时长等于数据里的"前摇 + 判定 + 后摇"，所以挑动作时只看姿势，不用在意原始速度。

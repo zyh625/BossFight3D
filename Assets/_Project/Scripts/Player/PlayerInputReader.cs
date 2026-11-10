@@ -20,6 +20,7 @@ namespace BossFight.Player
         private InputAction roll;
         private InputAction attack;
         private InputAction charge;
+        private InputAction lockOn;
 
         /// <summary>移动输入，长度 ≤ 1。</summary>
         public Vector2 Move => Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1f);
@@ -36,6 +37,7 @@ namespace BossFight.Player
         /// <summary>右键：按住蓄力。</summary>
         public bool ChargeHeld => charge.IsPressed();
         public bool ChargePressedThisFrame => charge.WasPressedThisFrame();
+        public bool LockOnPressedThisFrame => lockOn.WasPressedThisFrame();
 
         private void Awake()
         {
@@ -46,6 +48,7 @@ namespace BossFight.Player
             roll = map.FindAction("Roll", throwIfNotFound: true);
             attack = map.FindAction("Attack", throwIfNotFound: true);
             charge = map.FindAction("Charge", throwIfNotFound: true);
+            lockOn = map.FindAction("LockOn", throwIfNotFound: true);
         }
 
         private void OnEnable()

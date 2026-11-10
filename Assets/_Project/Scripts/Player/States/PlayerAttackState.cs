@@ -40,7 +40,7 @@ namespace BossFight.Player.States
 
         public void Enter()
         {
-            startedAt = Time.timeAsDouble;
+            startedAt = ctx.ActionTime;
             elapsed = 0f;
             hitboxOpened = false;
             canSeeThrough = comboIndex < 0;
@@ -48,9 +48,12 @@ namespace BossFight.Player.States
             guardDamage = data.GuardDamage;
 
             Vector2 move = ctx.Input.Move;
-            aimDirection = move.sqrMagnitude > 0.01f
-                ? ctx.Movement.ToWorldDirection(move).normalized
-                : ctx.Transform.forward;
+            if (!ctx.Movement.TryGetLockDirection(out aimDirection))
+            {
+                aimDirection = move.sqrMagnitude > 0.01f
+                    ? ctx.Movement.ToWorldDirection(move).normalized
+                    : ctx.Transform.forward;
+            }
 
             lungeRemaining = data.LungeDistance;
             float lungeTime = windup + data.Active;
@@ -62,12 +65,16 @@ namespace BossFight.Player.States
 
         public bool TrySeeThrough()
         {
-            if (!canSeeThrough || hitboxOpened || Time.timeAsDouble - startedAt >= ctx.Combat.SeeThroughWindow)
+            if (!canSeeThrough || hitboxOpened || ctx.ActionTime - startedAt >= ctx.Combat.SeeThroughWindow)
             {
                 return false;
             }
 
             canSeeThrough = false;
+            if (ctx.Movement.TryGetLockDirection(out Vector3 facing))
+            {
+                ctx.Transform.rotation = Quaternion.LookRotation(facing);
+            }
             windup = elapsed;
             damageMultiplier *= ctx.Combat.CounterDamageMultiplier;
             guardDamage += ctx.Combat.CounterBonusGuardDamage;
@@ -86,6 +93,10 @@ namespace BossFight.Player.States
 
             if (elapsed < windup)
             {
+                if (ctx.Movement.TryGetLockDirection(out Vector3 facing))
+                {
+                    aimDirection = facing;
+                }
                 ctx.Motor.Face(aimDirection, ctx.Combat.AttackTurnSpeed, dt);
             }
 

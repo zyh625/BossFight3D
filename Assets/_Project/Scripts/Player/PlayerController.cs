@@ -30,6 +30,8 @@ namespace BossFight.Player
         private readonly StateMachine machine = new StateMachine();
         private PlayerContext context;
         private Health health;
+        private DamageReceiver damageReceiver;
+        private PlayerHitState hitState;
 
         int IDamageModifier.Order => 100;
 
@@ -44,6 +46,7 @@ namespace BossFight.Player
         private void Awake()
         {
             health = GetComponent<Health>();
+            damageReceiver = GetComponent<DamageReceiver>();
             var buffer = new InputBuffer(combatConfig.InputBufferTime);
 
             context = new PlayerContext
@@ -57,6 +60,7 @@ namespace BossFight.Player
                 Stamina = stamina,
                 WeaponHitbox = weaponHitbox,
                 Combat = combatConfig,
+                HitStop = GetComponent<LocalHitStop>(),
                 Buffer = buffer,
                 Machine = machine
             };
@@ -65,6 +69,7 @@ namespace BossFight.Player
             context.Attack = new PlayerAttackState(context);
             context.Charge = new PlayerChargeState(context);
             context.Roll = new PlayerRollState(context);
+            hitState = new PlayerHitState(context);
         }
 
         private void Start()
@@ -95,7 +100,7 @@ namespace BossFight.Player
                 return;
             }
 
-            float dt = Time.deltaTime;
+            float dt = context.HitStop != null ? context.HitStop.DeltaTime : Time.deltaTime;
 
             context.Buffer.Tick(dt);
             if (!input.ChargeHeld)
@@ -104,7 +109,10 @@ namespace BossFight.Player
             }
 
             ReadAttackInput();
-            machine.Tick(dt);
+            if (dt > 0f)
+            {
+                machine.Tick(dt);
+            }
         }
 
         void IDamageModifier.Modify(DamageContext damage)
@@ -129,17 +137,29 @@ namespace BossFight.Player
         private void OnEnable()
         {
             health.Died += OnDied;
+            damageReceiver.Damaged += OnDamaged;
         }
 
         private void OnDisable()
         {
             health.Died -= OnDied;
+            damageReceiver.Damaged -= OnDamaged;
             weaponHitbox.End();
         }
 
         private void OnDied()
         {
             context.ToLocomotion();
+        }
+
+        private void OnDamaged(DamageResult result)
+        {
+            if (result.FinalDamage > 0f && !result.Killed)
+            {
+                context.Buffer.Clear();
+                context.ChargeHoldConsumed = input.ChargeHeld;
+                machine.ChangeState(hitState);
+            }
         }
     }
 }

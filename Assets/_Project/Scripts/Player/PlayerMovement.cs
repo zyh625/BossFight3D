@@ -3,21 +3,22 @@ using UnityEngine;
 
 namespace BossFight.Player
 {
-    /// <summary>
-    /// 玩家的"自由移动"能力：把移动输入换算成相对相机的方向，带加减速地驱动 Motor。
-    /// 它不自己读输入、也不自己 Update，由上层（现在是 PlayerController，M2 起是移动状态）调用 Tick，
-    /// 这样攻击、翻滚等状态可以决定此刻允不允许移动。
-    /// </summary>
+    /// <summary>按相机或锁定目标的方向计算位移，由当前动作状态驱动。</summary>
     public sealed class PlayerMovement : MonoBehaviour
     {
         [SerializeField] private PlayerMovementConfig config;
         [SerializeField] private CharacterMotor motor;
 
         private Transform cameraTransform;
+        private LockOnTargeting targeting;
         private Vector3 velocity;
 
-        /// <summary>这一帧是否真的在奔跑（有方向输入且按住奔跑）。M2 的体力消耗会读它。</summary>
         public bool IsSprinting { get; private set; }
+
+        private void Awake()
+        {
+            targeting = GetComponent<LockOnTargeting>();
+        }
 
         private void Start()
         {
@@ -28,7 +29,6 @@ namespace BossFight.Player
             }
         }
 
-        /// <summary>进入不由本组件控制位移的状态（攻击等）时调用，避免回来时带着旧速度。</summary>
         public void ResetVelocity()
         {
             velocity = Vector3.zero;
@@ -45,30 +45,39 @@ namespace BossFight.Player
             float targetSpeed = (IsSprinting ? config.RunSpeed : config.WalkSpeed) * speedMultiplier;
             Vector3 targetVelocity = hasInput ? direction * targetSpeed : Vector3.zero;
             float rate = hasInput ? config.Acceleration : config.Deceleration;
-
             velocity = Vector3.MoveTowards(velocity, targetVelocity, rate * dt);
             motor.Move(velocity, dt);
 
-            if (hasInput)
+            if (TryGetLockDirection(out Vector3 facing))
+            {
+                motor.Face(facing, config.TurnSpeed, dt);
+            }
+            else if (hasInput)
             {
                 motor.Face(direction, config.TurnSpeed, dt);
             }
         }
 
-        /// <summary>把 WASD 输入投影到相机的水平朝向上：按 W 永远是"朝屏幕里走"。</summary>
         public Vector3 ToWorldDirection(Vector2 input)
         {
-            if (cameraTransform == null)
+            if (!TryGetLockDirection(out Vector3 forward))
             {
-                return new Vector3(input.x, 0f, input.y);
+                forward = cameraTransform != null ? cameraTransform.forward : Vector3.forward;
+                forward.y = 0f;
+                forward.Normalize();
             }
 
-            Vector3 forward = cameraTransform.forward;
-            forward.y = 0f;
-            forward.Normalize();
             Vector3 right = new Vector3(forward.z, 0f, -forward.x);
-
             return forward * input.y + right * input.x;
+        }
+
+        public bool TryGetLockDirection(out Vector3 direction)
+        {
+            var target = targeting != null ? targeting.Target : null;
+            direction = target != null ? target.transform.position - transform.position : Vector3.zero;
+            direction.y = 0f;
+            direction.Normalize();
+            return direction.sqrMagnitude > 0f;
         }
     }
 }

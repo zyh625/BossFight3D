@@ -69,6 +69,7 @@ namespace BossFight.EditorTools
 
                 var dummy = root.AddComponent<TrainingDummy>();
                 EditorWiring.SetRef(dummy, "health", health);
+                WireM3(root);
 
                 ProjectPaths.EnsureFolderFor(ProjectPaths.DummyPrefab);
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, ProjectPaths.DummyPrefab);
@@ -79,6 +80,16 @@ namespace BossFight.EditorTools
             {
                 Object.DestroyImmediate(root);
             }
+        }
+
+        internal static void WireM3(GameObject root)
+        {
+            if (!root.TryGetComponent<LockOnTarget>(out _))
+            {
+                root.AddComponent<LockOnTarget>();
+            }
+
+            CombatFeedbackBuilder.AddImpact(root);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace BossFight.Feedback
         [SerializeField] private DamageReceiver receiver;
         [SerializeField] private Renderer[] renderers;
         [SerializeField] private Color flashColor = Color.white;
+        [SerializeField] private Color parryFlashColor = new Color(0.15f, 1f, 0.95f);
         [SerializeField] private float duration = 0.1f;
 
         private MaterialPropertyBlock block;
@@ -38,13 +39,14 @@ namespace BossFight.Feedback
 
         private void OnDamaged(DamageResult result)
         {
-            if (result.FinalDamage <= 0f)
+            bool parried = result.Outcome == HitOutcome.Parried;
+            if (result.FinalDamage <= 0f && !parried)
             {
                 return;
             }
 
             remaining = duration;
-            block.SetColor(BaseColorId, flashColor);
+            block.SetColor(BaseColorId, parried ? parryFlashColor : flashColor);
             foreach (Renderer target in renderers)
             {
                 target.SetPropertyBlock(block);

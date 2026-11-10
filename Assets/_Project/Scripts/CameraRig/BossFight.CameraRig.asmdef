@@ -3,6 +3,7 @@
     "rootNamespace": "BossFight.CameraRig",
     "references": [
         "BossFight.Player",
+        "BossFight.Combat",
         "Unity.Cinemachine",
         "Unity.InputSystem"
     ],

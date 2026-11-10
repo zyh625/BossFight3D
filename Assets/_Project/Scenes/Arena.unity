@@ -10044,6 +10044,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 549882513}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &563722471
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 563722472}
+  m_Layer: 0
+  m_Name: CombatAim
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &563722472
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 563722471}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.5, z: -6}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &569449245
 GameObject:
   m_ObjectHideFlags: 0
@@ -15230,6 +15261,7 @@ GameObject:
   - component: {fileID: 880635390}
   - component: {fileID: 880635389}
   - component: {fileID: 880635388}
+  - component: {fileID: 880635395}
   m_Layer: 0
   m_Name: CM FreeLook
   m_TagString: Untagged
@@ -15263,8 +15295,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: BossFight.CameraRig::BossFight.CameraRig.OrbitCameraInput
   input: {fileID: 1502517003}
   orbital: {fileID: 880635392}
+  targeting: {fileID: 2118685822}
+  lockAim: {fileID: 563722472}
   sensitivity: {x: 0.12, y: 0.08}
   invertY: 0
+  lockYawSpeed: 540
+  lockFramingWeight: 0.42
+  framingSpeed: 5
 --- !u!114 &880635390
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15417,8 +15454,8 @@ MonoBehaviour:
   m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 1502517002}
-    LookAtTarget: {fileID: 0}
-    CustomLookAtTarget: 0
+    LookAtTarget: {fileID: 563722472}
+    CustomLookAtTarget: 1
   Lens:
     FieldOfView: 55
     OrthographicSize: 10
@@ -15454,6 +15491,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &880635395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 880635387}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &884376121
 GameObject:
   m_ObjectHideFlags: 0
@@ -37892,6 +37953,17 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2118188163}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &2118685822 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4236708205918996739, guid: 4e3fe4bfcdec14a4082696af242a25a3, type: 3}
+  m_PrefabInstance: {fileID: 1502516999}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61c1def742bad2b459842cc4e071b063, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Player::BossFight.Player.LockOnTargeting
 --- !u!1 &2119507005
 GameObject:
   m_ObjectHideFlags: 0
@@ -38659,3 +38731,4 @@ SceneRoots:
   - {fileID: 880635394}
   - {fileID: 426127401}
   - {fileID: 1971313774}
+  - {fileID: 563722472}

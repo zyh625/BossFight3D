@@ -1,6 +1,7 @@
 using BossFight.Character;
 using BossFight.Combat;
 using BossFight.DevTools;
+using BossFight.Feedback;
 using BossFight.Player;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -106,6 +107,7 @@ namespace BossFight.EditorTools
 
                 SetLayerRecursively(root.transform, LayerSetup.Get(LayerSetup.Player));
                 AddHurtbox(root);
+                WireM3(root);
 
                 ProjectPaths.EnsureFolderFor(ProjectPaths.PlayerPrefab);
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, ProjectPaths.PlayerPrefab);
@@ -118,7 +120,34 @@ namespace BossFight.EditorTools
             }
         }
 
-        internal static void AddHurtbox(GameObject root)
+        internal static void WireM3(GameObject root)
+        {
+            if (!root.TryGetComponent<LockOnTargeting>(out _))
+            {
+                var targeting = root.AddComponent<LockOnTargeting>();
+                EditorWiring.Edit(targeting, "occlusionLayers",
+                    p => p.intValue = 1 << LayerSetup.Get(LayerSetup.Environment));
+            }
+
+            if (!root.TryGetComponent<HitFlash>(out _))
+            {
+                var flash = root.AddComponent<HitFlash>();
+                var renderers = root.GetComponent<CharacterVisual>().VisualRoot.GetComponentsInChildren<Renderer>(true);
+                EditorWiring.SetRef(flash, "receiver", root.GetComponent<DamageReceiver>());
+                EditorWiring.Edit(flash, "renderers", p =>
+                {
+                    p.arraySize = renderers.Length;
+                    for (int i = 0; i < renderers.Length; i++)
+                    {
+                        p.GetArrayElementAtIndex(i).objectReferenceValue = renderers[i];
+                    }
+                });
+            }
+
+            CombatFeedbackBuilder.AddImpact(root);
+        }
+
+        private static void AddHurtbox(GameObject root)
         {
             var receiver = root.GetComponent<DamageReceiver>();
             if (receiver == null)

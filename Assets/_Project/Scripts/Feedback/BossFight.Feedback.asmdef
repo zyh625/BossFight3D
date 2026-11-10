@@ -3,7 +3,9 @@
     "rootNamespace": "BossFight.Feedback",
     "references": [
         "BossFight.Core",
-        "BossFight.Combat"
+        "BossFight.Combat",
+        "BossFight.Character",
+        "Unity.Cinemachine"
     ],
     "autoReferenced": true
 }

@@ -27,6 +27,8 @@ namespace BossFight.Character
         private void Awake()
         {
             controller = GetComponent<CharacterController>();
+            // 小帧步和缓慢蓄力移动也需要应用到碰撞体。
+            controller.minMoveDistance = 0f;
         }
 
         /// <summary>

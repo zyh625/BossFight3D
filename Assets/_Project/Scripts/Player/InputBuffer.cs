@@ -33,6 +33,11 @@ namespace BossFight.Player
             remaining = window;
         }
 
+        public void Clear()
+        {
+            command = PlayerCommand.None;
+        }
+
         public void Tick(float dt)
         {
             if (command == PlayerCommand.None)

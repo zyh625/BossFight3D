@@ -50,6 +50,10 @@ namespace BossFight.Player
         [Min(0f)]
         [SerializeField] private float rollInvulnerabilityEnd = 0.35f;
 
+        [Header("受击")]
+        [SerializeField, Min(0f)] private float hitStunDuration = 0.4f;
+        [SerializeField, Min(0f)] private float hitStunRollCancelTime = 0.25f;
+
         [Header("通用")]
         [Tooltip("输入缓冲时长（秒）")]
         [SerializeField] private float inputBufferTime = 0.2f;
@@ -76,6 +80,8 @@ namespace BossFight.Player
         public float RollDistance => rollDistance;
         public float RollInvulnerabilityStart => rollInvulnerabilityStart;
         public float RollInvulnerabilityEnd => rollInvulnerabilityEnd;
+        public float HitStunDuration => hitStunDuration;
+        public float HitStunRollCancelTime => hitStunRollCancelTime;
         public float InputBufferTime => inputBufferTime;
         public float AttackTurnSpeed => attackTurnSpeed;
         public float SprintStaminaPerSecond => sprintStaminaPerSecond;

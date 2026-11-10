@@ -22,6 +22,8 @@ namespace BossFight.DevTools
         private GUIStyle labelStyle;
         private DamageReceiver playerReceiver;
         private TrainingDummy dummy;
+        private LockOnTargeting targeting;
+        private Camera view;
         private string lastDefense;
         private float defenseTime = -10f;
 
@@ -37,6 +39,7 @@ namespace BossFight.DevTools
             if (player != null && player.TryGetComponent(out playerReceiver))
             {
                 playerReceiver.Damaged += OnPlayerDamaged;
+                targeting = player.GetComponent<LockOnTargeting>();
             }
         }
 
@@ -78,6 +81,11 @@ namespace BossFight.DevTools
             defenseTime = Time.time;
         }
 
+        private void Start()
+        {
+            view = Camera.main;
+        }
+
         private void OnGUI()
         {
             labelStyle ??= new GUIStyle(GUI.skin.label) { fontSize = 16, richText = true };
@@ -85,6 +93,13 @@ namespace BossFight.DevTools
             const float width = 320f;
             float x = 20f;
             float y = Screen.height - 150f;
+
+            if (playerReceiver != null)
+            {
+                Health health = playerReceiver.Health;
+                DrawBar(new Rect(x, y - 42f, width, 14f), health.Current / health.Max,
+                    new Color(1f, 0.25f, 0.4f), $"生命 {health.Current:0}/{health.Max:0}");
+            }
 
             if (playerStamina != null)
             {
@@ -123,6 +138,15 @@ namespace BossFight.DevTools
                 {
                     GUI.Label(new Rect(rect.x, rect.yMax + 30f, 500f, 24f),
                         $"木桩出拳前摇 <b>{dummy.WindupRemaining:0.00}s</b>", labelStyle);
+                }
+            }
+
+            if (targeting != null && targeting.Target != null && view != null)
+            {
+                Vector3 point = view.WorldToScreenPoint(targeting.Target.AimPoint + Vector3.up * 0.55f);
+                if (point.z > 0f)
+                {
+                    GUI.Label(new Rect(point.x - 8f, Screen.height - point.y - 12f, 24f, 24f), "◆", labelStyle);
                 }
             }
         }

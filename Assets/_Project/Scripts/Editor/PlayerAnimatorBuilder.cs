@@ -21,7 +21,7 @@ namespace BossFight.EditorTools
         /// 动作类状态：状态名 = 动画文件名。对应的 FBX 存在才会加入，缺了也不影响玩法
         /// （CharacterVisual.Play 找不到状态时什么都不做）。
         /// </summary>
-        private static readonly string[] ActionStates = { "Light1", "Light2", "Light3", "HeavyCharge", "Heavy", "Roll" };
+        private static readonly string[] ActionStates = { "Light1", "Light2", "Light3", "HeavyCharge", "Heavy", "Roll", "Hit" };
 
         /// <returns>三个动画齐全并生成成功时返回 true。</returns>
         public static bool Build()

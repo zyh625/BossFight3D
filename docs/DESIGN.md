@@ -122,11 +122,11 @@
 |---|---|---|
 | **Core** | 与玩法无关的通用设施 | `StateMachine<T>` / `IState`、`GameClock`（时间）、`EventChannel`（SO 事件通道）、`Cooldown` |
 | **Combat** | 伤害的产生、结算、广播；玩家和 Boss 共用 | `Health`、`Stamina`、`Hitbox`、`Hurtbox`、`DamageInfo`、`DamageReceiver`（结算管线）、`AttackData`（SO） |
-| **Character** | 角色通用外壳，保证模型可换 | `CharacterMotor`（封装 CharacterController）、`CharacterVisual`（Animator 包装）、`SocketBinder`（Socket 挂骨骼）、`LocalTimeScale`（顿帧） |
+| **Character** | 角色通用外壳，保证模型可换 | `CharacterMotor`（封装 CharacterController）、`CharacterVisual`（Animator 包装）、`SocketBinder`（Socket 挂骨骼）、`LocalHitStop`（顿帧） |
 | **Player** | 输入、玩家状态机与玩家防御 | `PlayerInputReader`、`PlayerController`、各状态类（Locomotion / Roll / Attack / Charge / Hit / Dead）、`LockOnTargeting` |
 | **Boss** | Boss AI | `BossController`、`BossBrain`（招式选择）、`BossMoveData`（SO，每招一份）、各状态类、`GuardMeter`、`BossPhaseController` |
 | **Feedback** | 一切"表现"：只监听事件，不影响玩法 | `HitStop`、`CameraShaker`（Cinemachine Impulse）、`VfxSpawner`（对象池）、`SfxPlayer`、`WeaponTrail`、`AfterImage` |
-| **CameraRig** | 相机 | `CameraModeController`（自由 / 锁定 / 特写切换，Cinemachine 3 的优先级混合） |
+| **CameraRig** | 相机 | `OrbitCameraInput`（自由 / 锁定共用轨道），后续特写使用 Cinemachine 相机混合 |
 | **UI** | HUD 与流程界面 | `BarView`（通用条）、`BossHud`、`PlayerHud`、`ResultScreen` |
 | **Game** | 流程 | `FightDirector`（开始 / 胜利 / 失败 / 重开） |
 | **Editor** | 自动化搭建 | 场景生成、预制体组装、Animator Controller 生成脚本 |
@@ -199,7 +199,7 @@ Health.ApplyDamage → 产出 DamageResult{类型, 最终伤害, 命中点, 攻�
 |---|---|---|
 | 慢动作（P1） | `GameClock` 修改 `Time.timeScale`，同步调整 `fixedDeltaTime` | — |
 | 玩法计时（冷却、前后摇、移动、无敌帧、识破窗口） | 一律用缩放后的时间 | 慢动作会延长识破窗口在现实中的持续时间 |
-| 顿帧（hitstop） | **不动全局 timeScale**，而是给攻击者和受击者各自的 `LocalTimeScale` 置 0（Animator.speed 和自身计时一起停） | 独立，可与慢动作叠加而不冲突 |
+| 顿帧（hitstop） | 攻击者和受击者的 `LocalHitStop` 暂停 Animator 和动作时钟，按真实时间恢复 | 可与慢动作叠加 |
 | UI 动画、结算界面、特写镜头混合 | `unscaledDeltaTime` | **不受影响** |
 | 音效 | P1 慢动作时降低 pitch | 跟随 |
 
@@ -368,7 +368,7 @@ Mixamo 的角色和动画可以免费用于商业项目并随游戏发布，但�
 |---|---|---|---|
 | **M1** | 工程与角色基础 | 工程/包/目录/程序集；输入；`CharacterMotor`；逻辑根与 Visual 分离、Socket；移动、奔跑；Cinemachine 自由视角；Editor 脚本生成灰盒场地。文档：`MODEL_SWAP.md`、`CREDITS.md` | 占位人偶在场地里走、跑，相机跟随 |
 | **M2** | 战斗核心 | 通用状态机；`Health`/`Stamina`/`Hitbox`/`Hurtbox`/伤害管线；轻攻击三连、蓄力重击、输入缓冲；训练木桩；Hitbox 调试可视化 | 砍木桩掉血，体力消耗与恢复正确 |
-| **M3** | 玩家防御与锁定 | 玩家生命与受击；翻滚（无敌帧、完美闪避）；识破；锁定相机；一个会定时出拳的测试木桩；最简版顿帧和震屏 | 能对着测试木桩练识破和完美闪避 |
+| **M3** | 玩家防御与锁定 | 玩家生命与受击；翻滚（无敌帧、完美闪避）；识破；锁定相机；一个会定时出拳的测试木桩；最简版顿帧和震屏 | 能锁定测试木桩、环绕移动并练习识破和完美闪避。见 [M3 试玩步骤](M3_玩家防御与锁定.md) |
 | **M4** | Boss 基础 | Boss 状态机、`BossBrain`、追击；三连斩；格挡条、格挡、破防、虚弱期；受击与死亡 | 可以和只会三连斩的 Boss 打一场完整的战斗 |
 | **M5** | Boss 技能与二阶段 | 瞬身斩、剑气、后撤瞬身；招式选择器；二阶段简版 | Boss 招式齐全，战斗有两个阶段 |
 | **M6** | UI 与流程 | Boss 血条/格挡条、玩家血条/体力条/技能条（占位）；胜利/失败/重开；破防重击特写镜头 | 从开始到结算的完整一局，可重开 |

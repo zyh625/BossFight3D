@@ -21,6 +21,8 @@ namespace BossFight.Player
         public Stamina Stamina;
         public Hitbox WeaponHitbox;
         public PlayerCombatConfig Combat;
+        public LocalHitStop HitStop;
+        public double ActionTime => HitStop != null ? HitStop.ActionTime : Time.timeAsDouble;
 
         public InputBuffer Buffer;
         public StateMachine Machine;

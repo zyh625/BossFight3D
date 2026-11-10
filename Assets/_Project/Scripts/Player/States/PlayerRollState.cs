@@ -24,12 +24,12 @@ namespace BossFight.Player.States
 
         public void Enter()
         {
-            startedAt = Time.timeAsDouble;
+            startedAt = ctx.ActionTime;
             elapsed = 0f;
             Vector2 move = ctx.Input.Move;
             direction = move.sqrMagnitude > 0.01f
                 ? ctx.Movement.ToWorldDirection(move).normalized
-                : ctx.Transform.forward;
+                : ctx.Movement.TryGetLockDirection(out Vector3 facing) ? -facing : ctx.Transform.forward;
             ctx.Transform.rotation = Quaternion.LookRotation(direction);
             ctx.Stamina.RegenMode = StaminaRegenMode.None;
             ctx.Visual.Play("Roll", 0.05f, ctx.Combat.RollDuration);
@@ -50,7 +50,7 @@ namespace BossFight.Player.States
 
         public bool TryDodge()
         {
-            double sinceStart = Time.timeAsDouble - startedAt;
+            double sinceStart = ctx.ActionTime - startedAt;
             if (sinceStart < ctx.Combat.RollInvulnerabilityStart || sinceStart >= ctx.Combat.RollInvulnerabilityEnd)
             {
                 return false;
