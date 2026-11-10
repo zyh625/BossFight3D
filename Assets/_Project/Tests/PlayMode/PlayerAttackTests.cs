@@ -1,4 +1,5 @@
 using System.Collections;
+using BossFight.Boss;
 using BossFight.Character;
 using BossFight.Combat;
 using BossFight.DevTools;
@@ -41,8 +42,14 @@ namespace BossFight.Tests
             player = Object.FindAnyObjectByType<PlayerController>();
             stamina = player.GetComponent<Stamina>();
             playerReceiver = player.GetComponent<DamageReceiver>();
-            var dummy = Object.FindAnyObjectByType<TrainingDummy>();
+            var boss = Object.FindAnyObjectByType<BossController>();
+            if (boss != null)
+            {
+                boss.gameObject.SetActive(false);
+            }
+            var dummy = Object.FindAnyObjectByType<TrainingDummy>(FindObjectsInactive.Include);
             dummy.enabled = false; // 用例精确控制来袭时刻，独立于场景的陪练开关。
+            dummy.gameObject.SetActive(true);
             dummyReceiver = dummy.GetComponent<DamageReceiver>();
             lastDummyHit = default;
             dummyReceiver.Damaged += result => lastDummyHit = result;
@@ -115,6 +122,7 @@ namespace BossFight.Tests
             yield return new WaitForSeconds(1.5f);
 
             Assert.AreEqual(dummyHealth.Max - 45f * 1.55f, dummyHealth.Current, 0.01f, "满蓄力重击伤害应为 45 × 1.55");
+            Assert.AreEqual(AttackImpact.ChargedHeavy, lastDummyHit.Info.Impact);
             Assert.AreEqual("PlayerLocomotionState", player.CurrentStateName);
         }
 
@@ -168,6 +176,7 @@ namespace BossFight.Tests
             yield return new WaitForSeconds(0.2f);
             Assert.AreEqual(32f * 1.3f, lastDummyHit.FinalDamage, 0.01f, "识破应跳过剩余前摇");
             Assert.AreEqual(50f, lastDummyHit.Info.GuardDamage, 0.01f);
+            Assert.AreEqual(AttackImpact.Counter, lastDummyHit.Info.Impact);
             float before = stamina.Current;
             Assert.IsTrue(stamina.TrySpend(stamina.Max));
             Assert.AreEqual(0f, stamina.Drain(35f));
@@ -204,6 +213,7 @@ namespace BossFight.Tests
             yield return new WaitForSeconds(0.25f);
             Assert.Greater(lastDummyHit.FinalDamage, 45f * 1.3f);
             Assert.AreEqual(60f, lastDummyHit.Info.GuardDamage);
+            Assert.AreEqual(AttackImpact.Counter | AttackImpact.ChargedHeavy, lastDummyHit.Info.Impact);
         }
 
         [UnityTest]

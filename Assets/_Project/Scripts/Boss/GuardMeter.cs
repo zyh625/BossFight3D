@@ -46,11 +46,9 @@ namespace BossFight.Boss
                 return;
             }
 
-            delay -= dt;
-            if (delay <= 0f && Current < max)
-            {
-                Current = Mathf.Min(max, Current + recoveryRate * dt);
-            }
+            float recoveryTime = Mathf.Max(0f, dt - delay);
+            delay = Mathf.Max(0f, delay - dt);
+            Current = Mathf.Min(max, Current + recoveryRate * recoveryTime);
         }
     }
 }

@@ -13,6 +13,7 @@ namespace BossFight.Player
 
         [SerializeField] private InputActionAsset actions;
 
+        private InputActionAsset runtimeActions;
         private InputActionMap map;
         private InputAction move;
         private InputAction look;
@@ -41,7 +42,9 @@ namespace BossFight.Player
 
         private void Awake()
         {
-            map = actions.FindActionMap(MapName, throwIfNotFound: true);
+            // 场景重载时，新玩家拥有独立的 Action 状态和设备绑定。
+            runtimeActions = Instantiate(actions);
+            map = runtimeActions.FindActionMap(MapName, throwIfNotFound: true);
             move = map.FindAction("Move", throwIfNotFound: true);
             look = map.FindAction("Look", throwIfNotFound: true);
             sprint = map.FindAction("Sprint", throwIfNotFound: true);
@@ -59,6 +62,11 @@ namespace BossFight.Player
         private void OnDisable()
         {
             map.Disable();
+        }
+
+        private void OnDestroy()
+        {
+            Destroy(runtimeActions);
         }
     }
 }

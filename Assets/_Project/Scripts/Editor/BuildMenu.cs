@@ -42,11 +42,12 @@ namespace BossFight.EditorTools
             PlayerAnimatorBuilder.Build();
         }
 
-        [MenuItem(Menu + "3 Build Prefabs（玩家、木桩预制体）", priority = 22)]
+        [MenuItem(Menu + "3 Build Prefabs（玩家、Boss、木桩预制体）", priority = 22)]
         public static void BuildPrefabs()
         {
             PlayerPrefabBuilder.Build();
             DummyPrefabBuilder.Build();
+            BossPrefabBuilder.Build();
         }
 
         [MenuItem(Menu + "4 Build Arena Scene（场地场景）", priority = 23)]

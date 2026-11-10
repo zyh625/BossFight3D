@@ -3,6 +3,7 @@
     "rootNamespace": "BossFight.EditorTools",
     "references": [
         "BossFight.Core",
+        "BossFight.Boss",
         "BossFight.Combat",
         "BossFight.Feedback",
         "BossFight.DevTools",

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1afca4f4a4189394aa2fd0523521ae2b, type: 3}
+  m_Name: BossCombatConfig
+  m_EditorClassIdentifier: BossFight.Boss::BossFight.Boss.BossCombatConfig
+  combo:
+  - {fileID: 11400000, guid: 607a350b0b689294eb1b2f645a684207, type: 2}
+  - {fileID: 11400000, guid: 2b387765adcbf06488bbf38410a83453, type: 2}
+  - {fileID: 11400000, guid: 796c96ca25848cf458e00f4ae4267fd9, type: 2}
+  attackDistance: 3.2
+  chaseSpeed: 3.8
+  turnSpeed: 540
+  aimLockLead: 0.15
+  comboCooldown: 1.5
+  hitStun: 0.25
+  brokenDuration: 3.5
+  guardedDamageScale: 0.2
+  brokenDamageScale: 1.5
+  brokenHeavyDamageScale: 2.5

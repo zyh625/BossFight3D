@@ -7515,6 +7515,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: TrainingDummy
       objectReference: {fileID: 0}
+    - target: {fileID: 2028453392922678968, guid: d672fc698b3acd84a908eff0ba19ea1d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2685574229147513392, guid: d672fc698b3acd84a908eff0ba19ea1d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -33392,6 +33396,78 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1849710038}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1851120801
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2322893321157221160, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_Name
+      value: ShadowSwordsman
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765018320227574890, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6210507724186339707, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+      propertyPath: target
+      value: 
+      objectReference: {fileID: 1502517004}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+--- !u!114 &1851120802 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6210507724186339707, guid: 9a8d9173dc2da2d489e71a1252a0b682, type: 3}
+  m_PrefabInstance: {fileID: 1851120801}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b3aa01e6cf29654aa3a00659992fc09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Boss::BossFight.Boss.BossController
 --- !u!1 &1860909984
 GameObject:
   m_ObjectHideFlags: 0
@@ -35294,6 +35370,7 @@ MonoBehaviour:
   player: {fileID: 1502517001}
   playerStamina: {fileID: 1502517000}
   target: {fileID: 426127402}
+  boss: {fileID: 1851120802}
 --- !u!4 &1971313774
 Transform:
   m_ObjectHideFlags: 0
@@ -38732,3 +38809,4 @@ SceneRoots:
   - {fileID: 426127401}
   - {fileID: 1971313774}
   - {fileID: 563722472}
+  - {fileID: 1851120801}

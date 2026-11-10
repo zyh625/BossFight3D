@@ -1,3 +1,4 @@
+using BossFight.Boss;
 using BossFight.Combat;
 using BossFight.Player;
 using UnityEditor;
@@ -40,6 +41,35 @@ namespace BossFight.EditorTools
             EditorWiring.SetRef(config, "heavyAttack", heavy);
 
             SetDefaultVariedAttack(config);
+            return config;
+        }
+
+        public static BossCombatConfig GetOrCreateBossCombatConfig()
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<BossCombatConfig>(ProjectPaths.BossCombatConfig);
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            AttackData[] strikes =
+            {
+                Attack("Boss_SlashLeft", "", 0.45f, 0.12f, 0f, 12f, 0f, 0f, 0.35f),
+                Attack("Boss_SlashRight", "", 0.35f, 0.12f, 0f, 12f, 0f, 0f, 0.25f),
+                Attack("Boss_CrossSlash", "", 0.75f, 0.15f, 1f, 24f, 0f, 0f, 0.45f)
+            };
+            var config = ScriptableObject.CreateInstance<BossCombatConfig>();
+            ProjectPaths.EnsureFolderFor(ProjectPaths.BossCombatConfig);
+            AssetDatabase.CreateAsset(config, ProjectPaths.BossCombatConfig);
+            EditorWiring.Edit(config, "combo", property =>
+            {
+                property.arraySize = strikes.Length;
+                for (int i = 0; i < strikes.Length; i++)
+                {
+                    property.GetArrayElementAtIndex(i).objectReferenceValue = strikes[i];
+                }
+            });
+            AssetDatabase.SaveAssets();
             return config;
         }
 

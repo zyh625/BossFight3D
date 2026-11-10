@@ -1,3 +1,4 @@
+using BossFight.Boss;
 using BossFight.CameraRig;
 using BossFight.Combat;
 using BossFight.DevTools;
@@ -246,7 +247,7 @@ namespace BossFight.EditorTools
             }
         }
 
-        /// <summary>场地中央放一个训练木桩，并接好调试显示。M4 起这个位置换成 Boss。</summary>
+        /// <summary>木桩保留作练习对象，默认启用 Boss 对战。</summary>
         private static void BuildTrainingDummy(GameObject player)
         {
             var dummyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ProjectPaths.DummyPrefab);
@@ -263,6 +264,32 @@ namespace BossFight.EditorTools
             EditorWiring.SetRef(overlay, "player", player.GetComponent<PlayerController>());
             EditorWiring.SetRef(overlay, "playerStamina", player.GetComponent<Stamina>());
             EditorWiring.SetRef(overlay, "target", dummy.GetComponent<DamageReceiver>());
+            WireBoss(player, dummy, overlay);
+        }
+
+        internal static void WireBoss(GameObject player, GameObject dummy, CombatDebugOverlay overlay)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ProjectPaths.BossPrefab);
+            if (prefab == null)
+            {
+                prefab = BossPrefabBuilder.Build();
+            }
+
+            var bossObject = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            bossObject.transform.position = dummy.transform.position;
+            Vector3 towardPlayer = player.transform.position - bossObject.transform.position;
+            towardPlayer.y = 0f;
+            if (towardPlayer.sqrMagnitude > 0f)
+            {
+                bossObject.transform.rotation = Quaternion.LookRotation(towardPlayer);
+            }
+
+            var boss = bossObject.GetComponent<BossController>();
+            EditorWiring.SetRef(boss, "target", player.GetComponent<DamageReceiver>());
+            PrefabUtility.RecordPrefabInstancePropertyModifications(boss);
+            EditorWiring.SetRef(overlay, "boss", boss);
+            dummy.SetActive(false);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(dummy);
         }
 
         private static GameObject CreateBlock(

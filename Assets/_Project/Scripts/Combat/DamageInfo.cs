@@ -1,12 +1,14 @@
+using System;
 using UnityEngine;
 
 namespace BossFight.Combat
 {
+    [Flags]
     public enum AttackImpact
     {
-        Normal,
-        Counter,
-        ChargedHeavy
+        Normal = 0,
+        Counter = 1 << 0,
+        ChargedHeavy = 1 << 1
     }
 
     /// <summary>一次命中的"输入"：攻击方想造成什么。由 Hitbox 生成。</summary>

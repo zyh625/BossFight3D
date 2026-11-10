@@ -80,10 +80,7 @@ namespace BossFight.Player.States
             windup = elapsed;
             damageMultiplier *= ctx.Combat.CounterDamageMultiplier;
             guardDamage += ctx.Combat.CounterBonusGuardDamage;
-            if (impact == AttackImpact.Normal)
-            {
-                impact = AttackImpact.Counter;
-            }
+            impact |= AttackImpact.Counter;
             lungeSpeed = data.Active > 0f ? lungeRemaining / data.Active : 0f;
             ctx.Stamina.GrantFreeSpending(ctx.Combat.FreeStaminaDuration);
             ctx.Stamina.Refund(staminaSpent);
