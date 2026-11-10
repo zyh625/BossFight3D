@@ -2,6 +2,13 @@ using UnityEngine;
 
 namespace BossFight.Combat
 {
+    public enum AttackImpact
+    {
+        Normal,
+        Counter,
+        ChargedHeavy
+    }
+
     /// <summary>一次命中的"输入"：攻击方想造成什么。由 Hitbox 生成。</summary>
     public struct DamageInfo
     {
@@ -10,6 +17,7 @@ namespace BossFight.Combat
 
         /// <summary>对格挡条（韧性）的伤害。M4 的 Boss 格挡条使用。</summary>
         public float GuardDamage;
+        public AttackImpact Impact;
 
         public GameObject Attacker;
 

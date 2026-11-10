@@ -18,6 +18,7 @@ namespace BossFight.Player.States
         private float elapsed;
         private float windup;
         private float guardDamage;
+        private AttackImpact impact;
         private bool canSeeThrough;
         private bool hitboxOpened;
         private Vector3 aimDirection;
@@ -46,6 +47,7 @@ namespace BossFight.Player.States
             canSeeThrough = comboIndex < 0;
             windup = canSeeThrough ? Mathf.Max(data.Windup, ctx.Combat.SeeThroughWindow) : data.Windup;
             guardDamage = data.GuardDamage;
+            impact = data == ctx.Combat.HeavyAttack ? AttackImpact.ChargedHeavy : AttackImpact.Normal;
 
             Vector2 move = ctx.Input.Move;
             if (!ctx.Movement.TryGetLockDirection(out aimDirection))
@@ -78,6 +80,10 @@ namespace BossFight.Player.States
             windup = elapsed;
             damageMultiplier *= ctx.Combat.CounterDamageMultiplier;
             guardDamage += ctx.Combat.CounterBonusGuardDamage;
+            if (impact == AttackImpact.Normal)
+            {
+                impact = AttackImpact.Counter;
+            }
             lungeSpeed = data.Active > 0f ? lungeRemaining / data.Active : 0f;
             ctx.Stamina.GrantFreeSpending(ctx.Combat.FreeStaminaDuration);
             ctx.Stamina.Refund(staminaSpent);
@@ -110,7 +116,7 @@ namespace BossFight.Player.States
             if (!hitboxOpened && elapsed >= windup)
             {
                 hitboxOpened = true;
-                ctx.WeaponHitbox.Begin(ctx.GameObject, data.Damage * damageMultiplier, guardDamage, data.Active);
+                ctx.WeaponHitbox.Begin(ctx.GameObject, data.Damage * damageMultiplier, guardDamage, data.Active, impact);
                 return;
             }
 

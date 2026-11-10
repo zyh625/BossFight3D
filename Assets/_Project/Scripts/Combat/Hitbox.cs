@@ -37,6 +37,8 @@ namespace BossFight.Combat
         private GameObject attacker;
         private float damage;
         private float guardDamage;
+        private AttackImpact impact;
+        private DamageReceiver onlyTarget;
         private Vector3 previousBase;
         private Vector3 previousTip;
 
@@ -52,12 +54,15 @@ namespace BossFight.Combat
 
         /// <summary>开启判定。</summary>
         /// <param name="owner">攻击者。它自己的 Hurtbox 会被忽略。</param>
-        public void Begin(GameObject owner, float damageAmount, float guardDamageAmount, float activeDuration)
+        public void Begin(GameObject owner, float damageAmount, float guardDamageAmount, float activeDuration,
+            AttackImpact attackImpact = AttackImpact.Normal, DamageReceiver targetFilter = null)
         {
             attacker = owner;
             ownerReceiver = owner.GetComponent<DamageReceiver>();
             damage = damageAmount;
             guardDamage = guardDamageAmount;
+            impact = attackImpact;
+            onlyTarget = targetFilter;
 
             alreadyHit.Clear();
             previousBase = basePoint.position;
@@ -116,7 +121,7 @@ namespace BossFight.Combat
                 }
 
                 DamageReceiver target = hurtbox.Owner;
-                if (target == ownerReceiver || !alreadyHit.Add(target))
+                if (target == ownerReceiver || (onlyTarget != null && target != onlyTarget) || !alreadyHit.Add(target))
                 {
                     continue;
                 }
@@ -129,6 +134,7 @@ namespace BossFight.Combat
                 {
                     Amount = damage,
                     GuardDamage = guardDamage,
+                    Impact = impact,
                     Attacker = attacker,
                     HitPoint = hitPoint,
                     Direction = direction.normalized
