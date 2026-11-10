@@ -4,6 +4,14 @@ using UnityEngine;
 
 namespace BossFight.Player.States
 {
+    public enum PlayerAttackKind
+    {
+        None,
+        Light,
+        Combination,
+        ChargedHeavy
+    }
+
     /// <summary>轻击、切手技和蓄力重击共用时序。识破会跳过本次攻击剩余的前摇。</summary>
     public sealed class PlayerAttackState : IState
     {
@@ -24,6 +32,12 @@ namespace BossFight.Player.States
         private Vector3 aimDirection;
         private float lungeSpeed;
         private float lungeRemaining;
+
+        public PlayerAttackKind Kind { get; private set; }
+        public bool IsWindingUp => !hitboxOpened;
+
+        /// <summary>前摇进度 0~1。占位挥剑和之后的预备动作表现会读它。</summary>
+        public float WindupRatio => windup > 0f ? Mathf.Clamp01(elapsed / windup) : 1f;
 
         public PlayerAttackState(PlayerContext context)
         {
@@ -47,7 +61,13 @@ namespace BossFight.Player.States
             canSeeThrough = comboIndex < 0;
             windup = canSeeThrough ? Mathf.Max(data.Windup, ctx.Combat.SeeThroughWindow) : data.Windup;
             guardDamage = data.GuardDamage;
-            impact = data == ctx.Combat.HeavyAttack ? AttackImpact.ChargedHeavy : AttackImpact.Normal;
+            bool heavy = data == ctx.Combat.HeavyAttack;
+            Kind = heavy ? PlayerAttackKind.ChargedHeavy : comboIndex >= 0 ? PlayerAttackKind.Light : PlayerAttackKind.Combination;
+            impact = heavy ? AttackImpact.ChargedHeavy : AttackImpact.Normal;
+            if (heavy)
+            {
+                ctx.Motor.TryJump(ctx.Combat.HeavyLeapHeight);
+            }
 
             Vector2 move = ctx.Input.Move;
             if (!ctx.Movement.TryGetLockDirection(out aimDirection))
@@ -90,7 +110,24 @@ namespace BossFight.Player.States
 
         public void Tick(float dt)
         {
+            if (Kind == PlayerAttackKind.Light && IsWindingUp && ctx.ActionTime - startedAt <= ctx.Combat.ChargePresentationDelay
+                && ctx.TryStartVariedAttack(staminaSpent))
+            {
+                return;
+            }
+
             float activeEnd = windup + data.Active;
+
+            // 翻滚是保命手段，取消时机比其他动作宽：轻攻击的前摇里随时可以滚（体力不退），
+            // 任何攻击只要判定结束就可以滚，不必等到后摇的衔接点。
+            // 切手技和重击的前摇不能滚——它们是"识破"的出手，出了就要承担风险。
+            bool grounded = Kind != PlayerAttackKind.ChargedHeavy || ctx.Motor.IsGrounded;
+            bool rollWindow = (Kind == PlayerAttackKind.Light && !hitboxOpened) || elapsed >= activeEnd;
+            if (grounded && rollWindow && ctx.TryStartRoll())
+            {
+                return;
+            }
+
             float lungeTime = Mathf.Clamp(activeEnd - elapsed, 0f, dt);
             elapsed += dt;
 
@@ -123,14 +160,18 @@ namespace BossFight.Player.States
             }
 
             float skippedWindup = data.Windup - windup;
-            if (elapsed >= data.CancelTime - skippedWindup
-                && (ctx.TryStartRoll() || ctx.TryStartVariedAttack()
+            bool canChain = Kind != PlayerAttackKind.ChargedHeavy || ctx.Motor.IsGrounded;
+            if (canChain && elapsed >= data.CancelTime - skippedWindup
+                && (ctx.TryStartRoll() || ctx.TryStartJump() || ctx.TryStartVariedAttack()
                     || ctx.TryStartLightAttack(comboIndex + 1) || ctx.TryStartCharge()))
             {
                 return;
             }
 
-            if (elapsed >= data.Duration - skippedWindup)
+            // 过了衔接点之后，推方向键也能提前结束后摇——否则"打完想走却走不动"
+            bool wantsMove = elapsed >= data.CancelTime - skippedWindup
+                && ctx.Input.Move.sqrMagnitude >= ctx.Combat.MoveCancelThreshold * ctx.Combat.MoveCancelThreshold;
+            if (canChain && (wantsMove || elapsed >= data.Duration - skippedWindup))
             {
                 ctx.ToLocomotion();
             }

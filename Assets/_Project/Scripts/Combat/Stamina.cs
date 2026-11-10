@@ -30,6 +30,12 @@ namespace BossFight.Combat
         [SerializeField] private float regenDelay = 0.6f;
 
         private float delayRemaining;
+
+        /// <summary>
+        /// 所有消耗乘以这个倍率（1 = 正式数值）。由 PlayerCombatConfig 在启动时写入，
+        /// 用来在调试阶段临时把体力压力调低，而不用逐个改每一招的消耗。
+        /// </summary>
+        public float CostMultiplier { get; set; } = 1f;
         private double freeSpendingUntil;
 
         public float Max => max;
@@ -68,7 +74,7 @@ namespace BossFight.Combat
 
         public bool CanAfford(float cost)
         {
-            return HasFreeSpending || Current >= cost;
+            return HasFreeSpending || Current >= cost * CostMultiplier;
         }
 
         /// <summary>一次性消耗（攻击、翻滚）。体力不够时不扣，返回 false。</summary>
@@ -104,7 +110,7 @@ namespace BossFight.Combat
         /// <summary>扣到零为止，并返回实际支付的数值。</summary>
         public float Drain(float amount)
         {
-            float spent = Mathf.Min(amount, Current);
+            float spent = Mathf.Min(amount * CostMultiplier, Current);
             if (spent <= 0f || HasFreeSpending)
             {
                 return 0f;

@@ -13,6 +13,7 @@ namespace BossFight.Player.States
         private readonly PlayerContext ctx;
         private float chargeTime;
         private float staminaSpent;
+        private bool presented;
 
         public PlayerChargeState(PlayerContext context)
         {
@@ -21,19 +22,29 @@ namespace BossFight.Player.States
 
         /// <summary>当前蓄力进度 0~1。调试显示和之后的蓄力特效会读它。</summary>
         public float ChargeRatio => Mathf.Clamp01(chargeTime / ctx.Combat.FullChargeTime);
+        public float DisplayRatio => presented ? ChargeRatio : 0f;
 
         public void Enter()
         {
             chargeTime = 0f;
             staminaSpent = 0f;
+            presented = false;
             ctx.Stamina.RegenMode = StaminaRegenMode.None;
-            ctx.Visual.Play(ctx.Combat.ChargeAnimationState, 0.1f);
         }
 
         public void Tick(float dt)
         {
-            if (ctx.TryStartRoll() || ctx.TryStartVariedAttack())
+            if (ctx.TryStartRoll() || ctx.TryStartJump() || ctx.TryStartVariedAttack(presented ? 0f : staminaSpent))
             {
+                return;
+            }
+            if (ctx.ChargeHoldConsumed)
+            {
+                if (!presented)
+                {
+                    ctx.Stamina.Refund(staminaSpent);
+                }
+                ctx.ToLocomotion();
                 return;
             }
 
@@ -47,6 +58,12 @@ namespace BossFight.Player.States
             {
                 ReleaseHeavy();
                 return;
+            }
+
+            if (!presented && chargeTime >= ctx.Combat.ChargePresentationDelay)
+            {
+                presented = true;
+                ctx.Visual.Play(ctx.Combat.ChargeAnimationState, 0.1f);
             }
 
             ctx.Movement.Tick(ctx.Input.Move, false, dt, ctx.Combat.ChargeMoveMultiplier);

@@ -10,7 +10,10 @@
         "BossFight.Character",
         "BossFight.Player",
         "BossFight.CameraRig",
+        "BossFight.Game",
+        "BossFight.UI",
         "Unity.Cinemachine",
+        "UnityEngine.UI",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime"

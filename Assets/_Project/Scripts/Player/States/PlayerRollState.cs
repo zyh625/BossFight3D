@@ -42,6 +42,14 @@ namespace BossFight.Player.States
             float speed = dt > 0f ? ctx.Combat.RollDistance / duration * (moveTime / dt) : 0f;
             ctx.Motor.Move(direction * speed, dt);
             elapsed += dt;
+
+            // 翻滚的收尾阶段可以直接接下一个动作，不用等整个翻滚播完
+            if (elapsed >= ctx.Combat.RollCancelTime
+                && (ctx.TryStartRoll() || ctx.TryStartVariedAttack() || ctx.TryStartLightAttack(0)))
+            {
+                return;
+            }
+
             if (elapsed >= duration)
             {
                 ctx.ToLocomotion();

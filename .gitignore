@@ -33,3 +33,7 @@ crashlytics-build.properties
 # 由 Mixamo 素材生成的资源，克隆后用 Tools/BossFight 菜单重新生成
 /Assets/_Project/Generated/
 /Assets/_Project/Generated.meta
+
+# Unity 崩溃恢复产生的临时场景
+/Assets/_Recovery/
+/Assets/_Recovery.meta

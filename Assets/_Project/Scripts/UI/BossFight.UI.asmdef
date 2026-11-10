@@ -1,0 +1,12 @@
+{
+    "name": "BossFight.UI",
+    "rootNamespace": "BossFight.UI",
+    "references": [
+        "BossFight.Game",
+        "BossFight.Boss",
+        "BossFight.Combat",
+        "BossFight.Player",
+        "UnityEngine.UI"
+    ],
+    "autoReferenced": true
+}

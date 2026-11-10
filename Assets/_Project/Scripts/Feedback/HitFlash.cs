@@ -16,6 +16,7 @@ namespace BossFight.Feedback
         [SerializeField] private Renderer[] renderers;
         [SerializeField] private Color flashColor = Color.white;
         [SerializeField] private Color parryFlashColor = new Color(0.15f, 1f, 0.95f);
+        [SerializeField] private Color finisherFlashColor = new Color(1f, 0.78f, 0.24f);
         [SerializeField] private float duration = 0.1f;
 
         private MaterialPropertyBlock block;
@@ -45,8 +46,10 @@ namespace BossFight.Feedback
                 return;
             }
 
-            remaining = duration;
-            block.SetColor(BaseColorId, parried ? parryFlashColor : flashColor);
+            bool finisher = result.IsGuardBreakFinisher;
+            remaining = finisher ? duration * 2f : duration;
+            Color color = finisher ? finisherFlashColor : parried ? parryFlashColor : flashColor;
+            block.SetColor(BaseColorId, color);
             foreach (Renderer target in renderers)
             {
                 target.SetPropertyBlock(block);

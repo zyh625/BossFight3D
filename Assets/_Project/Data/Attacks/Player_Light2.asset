@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae78d2231be4c574babfc0b6332254ec, type: 3}
   m_Name: Player_Light2
   m_EditorClassIdentifier: BossFight.Combat::BossFight.Combat.AttackData
-  windup: 0.16
+  windup: 0.1
   active: 0.1
   recovery: 0.32
   cancelPoint: 0.5

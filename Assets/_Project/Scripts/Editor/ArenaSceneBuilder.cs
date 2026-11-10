@@ -44,8 +44,8 @@ namespace BossFight.EditorTools
             var player = (GameObject)PrefabUtility.InstantiatePrefab(playerPrefab);
             player.transform.position = new Vector3(0f, 0f, -6f);
 
-            BuildCameras(player.GetComponent<PlayerController>(), player.GetComponent<PlayerInputReader>());
-            BuildTrainingDummy(player);
+            var orbit = BuildCameras(player.GetComponent<PlayerController>(), player.GetComponent<PlayerInputReader>());
+            BuildEncounter(player, orbit);
 
             ProjectPaths.EnsureFolderFor(ProjectPaths.ArenaScene);
             EditorSceneManager.SaveScene(scene, ProjectPaths.ArenaScene);
@@ -186,7 +186,7 @@ namespace BossFight.EditorTools
             return component;
         }
 
-        private static void BuildCameras(PlayerController player, PlayerInputReader input)
+        private static OrbitCameraInput BuildCameras(PlayerController player, PlayerInputReader input)
         {
             var cameraObject = new GameObject("Main Camera") { tag = "MainCamera" };
             var camera = cameraObject.AddComponent<Camera>();
@@ -225,6 +225,7 @@ namespace BossFight.EditorTools
             WireCombatCamera(orbitInput, player.GetComponent<LockOnTargeting>());
 
             rig.AddComponent<CursorLocker>();
+            return orbitInput;
         }
 
         internal static void WireCombatCamera(OrbitCameraInput orbitInput, LockOnTargeting targeting)
@@ -248,7 +249,7 @@ namespace BossFight.EditorTools
         }
 
         /// <summary>木桩保留作练习对象，默认启用 Boss 对战。</summary>
-        private static void BuildTrainingDummy(GameObject player)
+        private static void BuildEncounter(GameObject player, OrbitCameraInput orbit)
         {
             var dummyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ProjectPaths.DummyPrefab);
             if (dummyPrefab == null)
@@ -264,10 +265,11 @@ namespace BossFight.EditorTools
             EditorWiring.SetRef(overlay, "player", player.GetComponent<PlayerController>());
             EditorWiring.SetRef(overlay, "playerStamina", player.GetComponent<Stamina>());
             EditorWiring.SetRef(overlay, "target", dummy.GetComponent<DamageReceiver>());
-            WireBoss(player, dummy, overlay);
+            BossController boss = WireBoss(player, dummy, overlay);
+            FightUiBuilder.Build(player.GetComponent<PlayerController>(), boss, orbit);
         }
 
-        internal static void WireBoss(GameObject player, GameObject dummy, CombatDebugOverlay overlay)
+        private static BossController WireBoss(GameObject player, GameObject dummy, CombatDebugOverlay overlay)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ProjectPaths.BossPrefab);
             if (prefab == null)
@@ -290,6 +292,7 @@ namespace BossFight.EditorTools
             EditorWiring.SetRef(overlay, "boss", boss);
             dummy.SetActive(false);
             PrefabUtility.RecordPrefabInstancePropertyModifications(dummy);
+            return boss;
         }
 
         private static GameObject CreateBlock(

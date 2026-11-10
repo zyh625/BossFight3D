@@ -8,7 +8,8 @@ namespace BossFight.Combat
     {
         Normal = 0,
         Counter = 1 << 0,
-        ChargedHeavy = 1 << 1
+        ChargedHeavy = 1 << 1,
+        GuardBreakFinisher = 1 << 2
     }
 
     /// <summary>一次命中的"输入"：攻击方想造成什么。由 Hitbox 生成。</summary>
@@ -56,6 +57,8 @@ namespace BossFight.Combat
 
         public DamageReceiver Target;
         public bool Killed;
+
+        public bool IsGuardBreakFinisher => FinalDamage > 0f && (Info.Impact & AttackImpact.GuardBreakFinisher) != 0;
     }
 
     /// <summary>

@@ -25,29 +25,34 @@ namespace BossFight.CameraRig
         [SerializeField, Min(1f)] private float framingSpeed = 5f;
         private float framingWeight;
         private Vector3 lastAimPoint;
+        private Vector3? finisherAim;
+
+        internal void SetFinisherAim(Vector3? point) => finisherAim = point;
 
         private void Update()
         {
             var target = targeting != null ? targeting.Target : null;
+            bool hasFocus = finisherAim.HasValue || target != null;
             Transform followTarget = orbital.FollowTarget;
             if (lockAim != null && followTarget != null)
             {
-                float desiredWeight = target != null ? lockFramingWeight : 0f;
+                float desiredWeight = hasFocus ? lockFramingWeight : 0f;
                 framingWeight = Mathf.MoveTowards(framingWeight, desiredWeight, framingSpeed * Time.unscaledDeltaTime);
                 Vector3 playerPoint = followTarget.position;
-                if (target != null)
+                if (hasFocus)
                 {
-                    lastAimPoint = target.AimPoint;
+                    lastAimPoint = finisherAim ?? target.AimPoint;
                     Vector3 direction = lastAimPoint - playerPoint;
                     float yaw = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
-                    float nextYaw = Mathf.MoveTowardsAngle(orbital.HorizontalAxis.Value, yaw, lockYawSpeed * Time.unscaledDeltaTime);
+                    float speed = finisherAim.HasValue ? lockYawSpeed * 2f : lockYawSpeed;
+                    float nextYaw = Mathf.MoveTowardsAngle(orbital.HorizontalAxis.Value, yaw, speed * Time.unscaledDeltaTime);
                     orbital.HorizontalAxis.Value = orbital.HorizontalAxis.ClampValue(nextYaw);
                 }
 
                 lockAim.position = Vector3.Lerp(playerPoint, lastAimPoint, framingWeight);
             }
 
-            if (target != null || Cursor.lockState != CursorLockMode.Locked)
+            if (hasFocus || Cursor.lockState != CursorLockMode.Locked)
             {
                 return;
             }

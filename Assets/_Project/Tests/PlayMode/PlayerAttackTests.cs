@@ -4,6 +4,7 @@ using BossFight.Character;
 using BossFight.Combat;
 using BossFight.DevTools;
 using BossFight.Player;
+using BossFight.Player.States;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -27,6 +28,7 @@ namespace BossFight.Tests
         private Health dummyHealth;
         private DamageReceiver dummyReceiver;
         private DamageReceiver playerReceiver;
+        private BossController boss;
         private DamageResult lastDummyHit;
 
         [UnitySetUp]
@@ -41,8 +43,9 @@ namespace BossFight.Tests
 
             player = Object.FindAnyObjectByType<PlayerController>();
             stamina = player.GetComponent<Stamina>();
+            stamina.CostMultiplier = 1f; // 用例按设计数值断言，不受调试用的体力倍率影响
             playerReceiver = player.GetComponent<DamageReceiver>();
-            var boss = Object.FindAnyObjectByType<BossController>();
+            boss = Object.FindAnyObjectByType<BossController>();
             if (boss != null)
             {
                 boss.gameObject.SetActive(false);
@@ -113,12 +116,19 @@ namespace BossFight.Tests
             Assert.AreEqual("PlayerChargeState", player.CurrentStateName, "满蓄力后右键按住时仍应继续蓄力");
             Assert.AreEqual(dummyHealth.Max, dummyHealth.Current, "松手前不能命中木桩");
             Assert.Less(stamina.Current, stamina.Max - 35f, "满蓄力后仍然持续耗体力");
+            Assert.Greater(player.VisibleChargeRatio, 0f);
+            Transform grip = player.GetComponentInChildren<Hitbox>().transform.parent;
+            Assert.Less(grip.localPosition.z, 0f, "蓄力时剑应在身体后方");
 
             float beforeRelease = stamina.Current;
+            float groundY = player.transform.position.y;
             input.Release(mouse.rightButton);
             yield return null;
             Assert.AreEqual("PlayerAttackState", player.CurrentStateName);
+            Assert.AreEqual(PlayerAttackKind.ChargedHeavy, player.ActiveAttack);
             Assert.Greater(stamina.Current, beforeRelease - 10f, "松手时只结算最后一帧蓄力消耗");
+            yield return new WaitForSeconds(0.2f);
+            Assert.Greater(player.transform.position.y, groundY + 0.5f, "释放蓄力重击应先跃起");
             yield return new WaitForSeconds(1.5f);
 
             Assert.AreEqual(dummyHealth.Max - 45f * 1.55f, dummyHealth.Current, 0.01f, "满蓄力重击伤害应为 45 × 1.55");
@@ -222,6 +232,8 @@ namespace BossFight.Tests
             InputSystem.QueueStateEvent(mouse, new MouseState().WithButton(MouseButton.Left).WithButton(MouseButton.Right));
             yield return null;
             Assert.AreEqual("PlayerAttackState", player.CurrentStateName);
+            Assert.AreEqual(PlayerAttackKind.Combination, player.ActiveAttack);
+            Assert.AreEqual(0f, player.VisibleChargeRatio);
             Assert.AreEqual(stamina.Max - 20f, stamina.Current, 0.01f);
             InputSystem.QueueStateEvent(mouse, new MouseState());
             yield return new WaitForSeconds(0.21f);
@@ -231,6 +243,74 @@ namespace BossFight.Tests
 
             yield return new WaitForSeconds(0.4f);
             Assert.AreEqual(dummyHealth.Max, dummyHealth.Current, "前摇中受击应打断切手技");
+        }
+
+        [UnityTest]
+        public IEnumerator QuickRightThenLeft_PerformsAnOverheadChopWithoutCharge()
+        {
+            Hitbox weapon = player.GetComponentInChildren<Hitbox>();
+            float startingBladeY = 0f;
+            weapon.Activated += _ => startingBladeY = weapon.transform.forward.y;
+            input.Press(mouse.rightButton);
+            float chargeDeadline = Time.time + 0.15f;
+            yield return new WaitUntil(() => player.ChargeRatio >= 0.025f || Time.time >= chargeDeadline);
+            Assert.GreaterOrEqual(player.ChargeRatio, 0.025f);
+            Assert.AreEqual(0f, player.VisibleChargeRatio);
+            InputSystem.QueueStateEvent(mouse, new MouseState().WithButton(MouseButton.Right).WithButton(MouseButton.Left));
+            yield return null;
+            Assert.AreEqual(PlayerAttackKind.Combination, player.ActiveAttack, player.CurrentStateName);
+            Assert.AreEqual(0f, player.VisibleChargeRatio);
+            Assert.AreEqual(stamina.Max - 20f, stamina.Current, 0.01f);
+            InputSystem.QueueStateEvent(mouse, new MouseState());
+
+            float deadline = Time.time + 0.65f;
+            yield return new WaitUntil(() => (weapon.IsActive && weapon.transform.forward.y < -0.2f) || Time.time >= deadline);
+            Assert.Greater(startingBladeY, 0.8f, "组合技从举剑起手");
+            Assert.IsTrue(weapon.IsActive);
+            Assert.Less(weapon.transform.forward.y, -0.2f, "同一刀在判定期间向下劈");
+            Assert.Less(player.transform.position.y, 0.15f, "组合技保持在地面");
+            yield return new WaitForSeconds(0.3f);
+            Assert.AreEqual(dummyHealth.Max - 32f, dummyHealth.Current, 0.01f);
+        }
+
+        [UnityTest]
+        public IEnumerator QuickLeftThenRight_ConvertsTheWindupIntoOneCombination()
+        {
+            input.Press(mouse.leftButton);
+            yield return null;
+            Assert.AreEqual(PlayerAttackKind.Light, player.ActiveAttack);
+            input.Press(mouse.rightButton);
+            yield return null;
+            Assert.AreEqual(PlayerAttackKind.Combination, player.ActiveAttack);
+            Assert.AreEqual(stamina.Max - 20f, stamina.Current, 0.01f);
+            Assert.AreEqual(0f, player.VisibleChargeRatio);
+            input.Release(mouse.leftButton);
+            input.Release(mouse.rightButton);
+            yield return new WaitForSeconds(0.7f);
+            Assert.AreEqual(dummyHealth.Max - 32f, dummyHealth.Current, 0.01f);
+        }
+
+        [UnityTest]
+        public IEnumerator CJumpClearsTheBossGroundWaveAndCanStillTakeAHit()
+        {
+            Assert.IsNotNull(boss);
+            dummyReceiver.gameObject.SetActive(false);
+            player.GetComponent<CharacterMotor>().Teleport(new Vector3(0f, 0f, -6f));
+            boss.gameObject.SetActive(true);
+            float deadline = Time.time + 2f;
+            yield return new WaitUntil(() => Object.FindAnyObjectByType<BossSwordWave>() != null || Time.time >= deadline);
+            Assert.IsNotNull(Object.FindAnyObjectByType<BossSwordWave>(), "Boss 应在六米距离释放剑气");
+
+            input.Press(keyboard.cKey);
+            yield return null;
+            input.Release(keyboard.cKey);
+            Assert.AreEqual("PlayerJumpState", player.CurrentStateName);
+            yield return new WaitForSeconds(0.39f);
+            Assert.Greater(player.transform.position.y, 0.85f);
+            Assert.AreEqual(playerReceiver.Health.Max, playerReceiver.Health.Current, "剑气应从抬起的 Hurtbox 下方经过");
+            Assert.AreEqual(HitOutcome.Hit, HitPlayer().Outcome, "跳跃没有全身无敌");
+            yield return new WaitForSeconds(0.6f);
+            Assert.AreEqual("PlayerLocomotionState", player.CurrentStateName);
         }
 
         [UnityTest]
@@ -312,6 +392,84 @@ namespace BossFight.Tests
             dummyHealth.ApplyDamage(dummyHealth.Max);
             yield return null;
             Assert.IsNull(targeting.Target);
+        }
+
+        private IEnumerator Tap(UnityEngine.InputSystem.Controls.KeyControl key)
+        {
+            input.Press(key);
+            yield return null;
+            input.Release(key);
+        }
+
+        // ---- 响应性：下面几条用例固定"按了就有反应"的取消规则 ----
+
+        [UnityTest]
+        public IEnumerator Roll_CancelsLightAttackRecovery_BeforeTheChainPoint()
+        {
+            yield return Click();
+            // 轻攻击 1：前摇 0.10 + 判定 0.10，衔接点在 0.35。0.25 时判定刚结束，还没到衔接点
+            yield return new WaitForSeconds(0.25f);
+            Assert.AreEqual("PlayerAttackState", player.CurrentStateName);
+
+            yield return Tap(keyboard.spaceKey);
+            yield return null;
+
+            Assert.AreEqual("PlayerRollState", player.CurrentStateName, "判定一结束就应该能用翻滚取消后摇");
+        }
+
+        [UnityTest]
+        public IEnumerator Roll_CancelsLightAttackWindup()
+        {
+            input.Press(mouse.leftButton);
+            yield return null;
+            input.Release(mouse.leftButton);
+            Assert.AreEqual("PlayerAttackState", player.CurrentStateName);
+
+            yield return Tap(keyboard.spaceKey);
+            yield return null;
+
+            Assert.AreEqual("PlayerRollState", player.CurrentStateName, "轻攻击前摇中应该能直接翻滚");
+            yield return new WaitForSeconds(0.8f);
+            Assert.AreEqual(dummyHealth.Max, dummyHealth.Current, "被翻滚取消的那一刀不应造成伤害");
+        }
+
+        [UnityTest]
+        public IEnumerator MoveInput_EndsRecoveryAtTheChainPoint()
+        {
+            yield return Click();
+            input.Press(keyboard.sKey);
+            // 轻攻击 1 全长 0.50，衔接点 0.35。0.42 时如果没有移动取消，仍然会停在攻击状态
+            yield return new WaitForSeconds(0.42f);
+
+            Assert.AreEqual("PlayerLocomotionState", player.CurrentStateName, "过了衔接点，按着方向键应提前结束后摇");
+            input.Release(keyboard.sKey);
+        }
+
+        [UnityTest]
+        public IEnumerator EarlySecondClick_IsStillBufferedAtTheChainPoint()
+        {
+            yield return Click();
+            // 第二下按在第一刀刚出手 0.1 秒时，离衔接点（0.35）还有约 0.25 秒
+            yield return new WaitForSeconds(0.08f);
+            yield return Click();
+            yield return new WaitForSeconds(1.2f);
+
+            Assert.AreEqual(dummyHealth.Max - 36f, dummyHealth.Current, 0.01f, "提前按下的第二刀应被缓冲并打出");
+        }
+
+        [UnityTest]
+        public IEnumerator RollTail_ChainsDirectlyIntoAttack()
+        {
+            yield return Tap(keyboard.spaceKey);
+            yield return null;
+            Assert.AreEqual("PlayerRollState", player.CurrentStateName);
+
+            // 翻滚全长 0.60，0.42 之后可以接动作
+            yield return new WaitForSeconds(0.46f);
+            Assert.AreEqual("PlayerRollState", player.CurrentStateName);
+            yield return Click();
+
+            Assert.AreEqual("PlayerAttackState", player.CurrentStateName, "翻滚收尾阶段应能直接出刀");
         }
 
         private static void AssertInFrame(Vector3 position)

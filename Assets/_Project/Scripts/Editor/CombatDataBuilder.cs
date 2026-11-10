@@ -22,9 +22,9 @@ namespace BossFight.EditorTools
             }
 
             //                              动画状态   前摇    判定   后摇    伤害  削格挡  体力  踏步
-            AttackData light1 = Attack("Player_Light1", "Light1", 0.18f, 0.10f, 0.30f, 18f, 12f, 10f, 0.6f);
-            AttackData light2 = Attack("Player_Light2", "Light2", 0.16f, 0.10f, 0.32f, 18f, 12f, 10f, 0.6f);
-            AttackData light3 = Attack("Player_Light3", "Light3", 0.25f, 0.12f, 0.50f, 26f, 18f, 12f, 0.9f);
+            AttackData light1 = Attack("Player_Light1", "Light1", 0.10f, 0.10f, 0.30f, 18f, 12f, 10f, 0.6f);
+            AttackData light2 = Attack("Player_Light2", "Light2", 0.10f, 0.10f, 0.32f, 18f, 12f, 10f, 0.6f);
+            AttackData light3 = Attack("Player_Light3", "Light3", 0.16f, 0.12f, 0.50f, 26f, 18f, 12f, 0.9f);
             AttackData heavy = Attack("Player_Heavy", "Heavy", 0.45f, 0.15f, 0.60f, 45f, 35f, 0f, 1.2f);
 
             config = ScriptableObject.CreateInstance<PlayerCombatConfig>();

@@ -29,6 +29,7 @@ namespace BossFight.Boss
 
         private readonly StateMachine machine = new StateMachine();
         private LocalHitStop hitStop;
+        private Health health;
         private IState approach;
         private BossComboState combo;
         private BossBlinkSlashState blinkSlash;
@@ -63,6 +64,7 @@ namespace BossFight.Boss
         private void Awake()
         {
             Receiver = GetComponent<DamageReceiver>();
+            health = GetComponent<Health>();
             Guard = GetComponent<GuardMeter>();
             Motor = GetComponent<CharacterMotor>();
             hitStop = GetComponent<LocalHitStop>();
@@ -80,11 +82,13 @@ namespace BossFight.Boss
         private void OnEnable()
         {
             Receiver.Damaged += OnDamaged;
+            health.Died += OnDied;
         }
 
         private void OnDisable()
         {
             Receiver.Damaged -= OnDamaged;
+            health.Died -= OnDied;
             weapons.Hitbox.End();
             if (skillVisuals != null)
             {
@@ -94,7 +98,10 @@ namespace BossFight.Boss
 
         private void Start()
         {
-            ToApproach();
+            if (!health.IsDead)
+            {
+                ToApproach();
+            }
         }
 
         private void Update()
@@ -178,9 +185,12 @@ namespace BossFight.Boss
             }
             else if (Status == BossStatus.Broken)
             {
-                damage.Damage *= (damage.Info.Impact & AttackImpact.ChargedHeavy) != 0
-                    ? config.BrokenHeavyDamageScale
-                    : config.BrokenDamageScale;
+                bool finisher = (damage.Info.Impact & AttackImpact.ChargedHeavy) != 0;
+                damage.Damage *= finisher ? config.BrokenHeavyDamageScale : config.BrokenDamageScale;
+                if (finisher)
+                {
+                    damage.Info.Impact |= AttackImpact.GuardBreakFinisher;
+                }
             }
             else if (CanCounterDrainGuard(damage.Info))
             {
@@ -192,7 +202,6 @@ namespace BossFight.Boss
         {
             if (result.Killed)
             {
-                ChangeState(BossStatus.Dead, stopped);
                 return;
             }
 
@@ -225,6 +234,8 @@ namespace BossFight.Boss
                 ToMove(BossMove.Retreat);
             }
         }
+
+        private void OnDied() => ChangeState(BossStatus.Dead, stopped);
 
         private bool CanCounterDrainGuard(DamageInfo info)
         {

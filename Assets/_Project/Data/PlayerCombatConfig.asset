@@ -32,6 +32,7 @@ MonoBehaviour:
   rollDistance: 4.5
   rollInvulnerabilityStart: 0.05
   rollInvulnerabilityEnd: 0.35
-  inputBufferTime: 0.2
-  attackTurnSpeed: 720
+  inputBufferTime: 0.35
+  attackTurnSpeed: 1440
   sprintStaminaPerSecond: 12
+  staminaCostMultiplier: 0.4

@@ -45,16 +45,32 @@ namespace BossFight.Character
                 verticalVelocity = groundedStickVelocity;
             }
 
+            float verticalStep = (verticalVelocity + 0.5f * gravity * dt) * dt;
             verticalVelocity += gravity * dt;
 
             float pushStep = Mathf.Min(dt, pushRemaining);
             pushRemaining -= pushStep;
-            Vector3 motion = (planarVelocity + Vector3.up * verticalVelocity) * dt + pushVelocity * pushStep;
-            controller.Move(motion);
+            Vector3 motion = planarVelocity * dt + Vector3.up * verticalStep + pushVelocity * pushStep;
+            CollisionFlags collisions = controller.Move(motion);
+            if ((collisions & CollisionFlags.Above) != 0 && verticalVelocity > 0f)
+            {
+                verticalVelocity = 0f;
+            }
 
             Vector3 actual = controller.velocity;
             actual.y = 0f;
             PlanarVelocity = actual;
+        }
+
+        public bool TryJump(float height)
+        {
+            if (!IsGrounded || verticalVelocity > 0f || height <= 0f || gravity >= 0f)
+            {
+                return false;
+            }
+
+            verticalVelocity = Mathf.Sqrt(-2f * gravity * height);
+            return true;
         }
 
         public void Push(Vector3 direction, float distance, float duration)

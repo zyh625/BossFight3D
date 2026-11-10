@@ -8,7 +8,8 @@ namespace BossFight.Player
         LightAttack,
         /// <summary>按住右键的同时按左键。</summary>
         VariedAttack,
-        Roll
+        Roll,
+        Jump
     }
 
     /// <summary>

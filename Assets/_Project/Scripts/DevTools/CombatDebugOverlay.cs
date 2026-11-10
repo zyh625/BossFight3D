@@ -23,8 +23,6 @@ namespace BossFight.DevTools
         private int hitCount;
         private GUIStyle labelStyle;
         private DamageReceiver playerReceiver;
-        private DamageReceiver bossReceiver;
-        private DamageReceiver lastHitTarget;
         private TrainingDummy dummy;
         private LockOnTargeting targeting;
         private Camera view;
@@ -40,11 +38,6 @@ namespace BossFight.DevTools
                 target.Damaged += OnTargetDamaged;
                 dummy = target.GetComponent<TrainingDummy>();
             }
-            if (boss != null)
-            {
-                bossReceiver = boss.GetComponent<DamageReceiver>();
-                bossReceiver.Damaged += OnTargetDamaged;
-            }
             if (player != null && player.TryGetComponent(out playerReceiver))
             {
                 playerReceiver.Damaged += OnPlayerDamaged;
@@ -58,10 +51,6 @@ namespace BossFight.DevTools
             {
                 target.Damaged -= OnTargetDamaged;
             }
-            if (bossReceiver != null)
-            {
-                bossReceiver.Damaged -= OnTargetDamaged;
-            }
             if (playerReceiver != null)
             {
                 playerReceiver.Damaged -= OnPlayerDamaged;
@@ -70,7 +59,7 @@ namespace BossFight.DevTools
 
         private void OnTargetDamaged(DamageResult result)
         {
-            if (result.Target != lastHitTarget || Time.time - lastHitTime > ComboResetSeconds)
+            if (Time.time - lastHitTime > ComboResetSeconds)
             {
                 comboDamage = 0f;
                 hitCount = 0;
@@ -81,7 +70,6 @@ namespace BossFight.DevTools
             comboDamage += result.FinalDamage;
             hitCount++;
             lastHitTime = Time.time;
-            lastHitTarget = result.Target;
         }
 
         private void OnPlayerDamaged(DamageResult result)
@@ -102,6 +90,11 @@ namespace BossFight.DevTools
 
         private void OnGUI()
         {
+            if (boss != null && boss.isActiveAndEnabled)
+            {
+                return;
+            }
+
             labelStyle ??= new GUIStyle(GUI.skin.label) { fontSize = 16, richText = true };
 
             const float width = 320f;
@@ -129,9 +122,9 @@ namespace BossFight.DevTools
                 string defense = Time.time - defenseTime < ComboResetSeconds ? $"    {lastDefense}" : "";
                 GUI.Label(new Rect(x, y, width, 24f), $"状态：{player.CurrentStateName}{defense}", labelStyle);
                 y += 24f;
-                if (player.ChargeRatio > 0f)
+                if (player.VisibleChargeRatio > 0f)
                 {
-                    DrawBar(new Rect(x, y + 18f, width, 10f), player.ChargeRatio, new Color(1f, 0.8f, 0.2f), "蓄力");
+                    DrawBar(new Rect(x, y + 18f, width, 10f), player.VisibleChargeRatio, new Color(1f, 0.8f, 0.2f), "蓄力");
                 }
             }
 
@@ -149,66 +142,29 @@ namespace BossFight.DevTools
 
         private void DrawEncounter()
         {
-            bool bossActive = boss != null && boss.isActiveAndEnabled;
-            DamageReceiver current = bossActive ? bossReceiver : target;
-            if (current == null || !current.isActiveAndEnabled)
+            if (target == null || !target.isActiveAndEnabled)
             {
                 return;
             }
 
-            Health health = current.Health;
+            Health health = target.Health;
             var rect = new Rect((Screen.width - 500f) * 0.5f, 40f, 500f, 18f);
-            string label = bossActive ? "暗影剑客" : "木桩";
-            if (bossActive && boss.IsPhaseTwo)
-            {
-                label += " · 二阶段";
-            }
             DrawBar(rect, health.Current / health.Max, new Color(1f, 0.25f, 0.4f),
-                $"{label} {health.Current:0}/{health.Max:0}");
+                $"木桩 {health.Current:0}/{health.Max:0}");
 
             float y = rect.yMax + 4f;
-            if (bossActive)
-            {
-                GuardMeter guard = boss.Guard;
-                DrawBar(new Rect(rect.x, y + 22f, rect.width, 9f), guard.Current / guard.Max, Color.white,
-                    $"格挡 {guard.Current:0}/{guard.Max:0}    {BossStatusLabel()}");
-                y += 35f;
-            }
-            else if (dummy != null && dummy.IsWindingUp)
+            if (dummy != null && dummy.IsWindingUp)
             {
                 GUI.Label(new Rect(rect.x, y, rect.width, 24f),
                     $"木桩出拳前摇 <b>{dummy.WindupRemaining:0.00}s</b>", labelStyle);
                 y += 24f;
             }
 
-            if (lastHitTarget == current && Time.time - lastHitTime < ComboResetSeconds)
+            if (Time.time - lastHitTime < ComboResetSeconds)
             {
                 GUI.Label(new Rect(rect.x, y, rect.width, 24f),
                     $"伤害 <b>{lastDamage:0.#}</b>    削格挡 {lastGuardDamage:0.#}    连击 {hitCount} 次，共 {comboDamage:0.#}", labelStyle);
             }
-        }
-
-        private string BossStatusLabel()
-        {
-            return boss.Status switch
-            {
-                BossStatus.Dead => "击败暗影剑客",
-                BossStatus.FightOver => "玩家倒下",
-                BossStatus.Broken => "破防",
-                BossStatus.Staggered => "出招被打断",
-                BossStatus.BlinkSlash => SkillStatus("瞬身斩"),
-                BossStatus.SwordWave => SkillStatus("剑气"),
-                BossStatus.Retreat => "后撤瞬身",
-                BossStatus.PhaseTransition => $"转阶段保护 {boss.PhaseTransitionRemaining:0.00}s",
-                BossStatus.Combo => $"三连斩 {boss.StrikeNumber}/{boss.ComboLength}  "
-                    + (boss.WindupRemaining > 0f ? $"前摇 {boss.WindupRemaining:0.00}s" : boss.IsStriking ? "挥砍" : "收招"),
-                _ => boss.CanGuard ? "追击 / 格挡" : "虚弱"
-            };
-        }
-
-        private string SkillStatus(string name)
-        {
-            return boss.WindupRemaining > 0f ? $"{name}  前摇 {boss.WindupRemaining:0.00}s" : $"{name}  收招";
         }
 
         private void DrawBar(Rect rect, float ratio, Color color, string label)

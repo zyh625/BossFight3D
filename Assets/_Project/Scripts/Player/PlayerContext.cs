@@ -31,6 +31,7 @@ namespace BossFight.Player
         public PlayerAttackState Attack;
         public PlayerChargeState Charge;
         public PlayerRollState Roll;
+        public PlayerJumpState Jump;
 
         // 切手技或耗尽体力的重击消耗掉当前这次右键长按。
         public bool ChargeHoldConsumed { get; set; }
@@ -52,26 +53,32 @@ namespace BossFight.Player
             }
 
             AttackData data = Combat.GetLight(comboIndex);
-            if (!Stamina.TrySpend(data.StaminaCost))
+            if (!Stamina.TrySpend(data.StaminaCost, out float spent))
             {
                 return false;
             }
 
-            Attack.Setup(data, comboIndex, 1f);
+            Attack.Setup(data, comboIndex, 1f, spent);
             Machine.ChangeState(Attack);
             return true;
         }
 
-        public bool TryStartVariedAttack()
+        public bool TryStartVariedAttack(float staminaCredit = 0f)
         {
-            if (!Buffer.TryConsume(PlayerCommand.VariedAttack) || Combat.VariedAttack == null
-                || !Stamina.TrySpend(Combat.VariedAttack.StaminaCost, out float spent))
+            if (!Buffer.TryConsume(PlayerCommand.VariedAttack) || Combat.VariedAttack == null)
             {
                 return false;
             }
 
+            float remainingCost = Combat.VariedAttack.StaminaCost - staminaCredit;
+            if (!Stamina.TrySpend(Mathf.Max(0f, remainingCost), out float spent))
+            {
+                return false;
+            }
+            float refund = Mathf.Max(0f, -remainingCost);
+            Stamina.Refund(refund);
             ChargeHoldConsumed = Input.ChargeHeld;
-            Attack.Setup(Combat.VariedAttack, -1, 1f, spent);
+            Attack.Setup(Combat.VariedAttack, -1, 1f, staminaCredit + spent - refund);
             Machine.ChangeState(Attack);
             return true;
         }
@@ -99,6 +106,18 @@ namespace BossFight.Player
             ChargeHoldConsumed = Input.ChargeHeld;
             Roll.Setup(spent);
             Machine.ChangeState(Roll);
+            return true;
+        }
+
+        public bool TryStartJump()
+        {
+            if (!Motor.IsGrounded || !Buffer.TryConsume(PlayerCommand.Jump) || !Motor.TryJump(Combat.JumpHeight))
+            {
+                return false;
+            }
+
+            ChargeHoldConsumed = Input.ChargeHeld;
+            Machine.ChangeState(Jump);
             return true;
         }
     }

@@ -19,6 +19,7 @@ namespace BossFight.Player
         private InputAction look;
         private InputAction sprint;
         private InputAction roll;
+        private InputAction jump;
         private InputAction attack;
         private InputAction charge;
         private InputAction lockOn;
@@ -31,9 +32,11 @@ namespace BossFight.Player
 
         public bool SprintHeld => sprint.IsPressed();
         public bool RollPressedThisFrame => roll.WasPressedThisFrame();
+        public bool JumpPressedThisFrame => jump.WasPressedThisFrame();
 
         /// <summary>左键：这一帧刚按下。</summary>
         public bool AttackPressedThisFrame => attack.WasPressedThisFrame();
+        public bool AttackHeld => attack.IsPressed();
 
         /// <summary>右键：按住蓄力。</summary>
         public bool ChargeHeld => charge.IsPressed();
@@ -49,6 +52,7 @@ namespace BossFight.Player
             look = map.FindAction("Look", throwIfNotFound: true);
             sprint = map.FindAction("Sprint", throwIfNotFound: true);
             roll = map.FindAction("Roll", throwIfNotFound: true);
+            jump = map.FindAction("Jump", throwIfNotFound: true);
             attack = map.FindAction("Attack", throwIfNotFound: true);
             charge = map.FindAction("Charge", throwIfNotFound: true);
             lockOn = map.FindAction("LockOn", throwIfNotFound: true);

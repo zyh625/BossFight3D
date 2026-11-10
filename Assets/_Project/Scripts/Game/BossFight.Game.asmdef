@@ -1,0 +1,11 @@
+{
+    "name": "BossFight.Game",
+    "rootNamespace": "BossFight.Game",
+    "references": [
+        "BossFight.Boss",
+        "BossFight.CameraRig",
+        "BossFight.Combat",
+        "BossFight.Player"
+    ],
+    "autoReferenced": true
+}

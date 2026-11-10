@@ -12,6 +12,8 @@ namespace BossFight.Feedback
         [SerializeField, Min(0f)] private float hitStopDuration = 0.035f;
         [SerializeField, Min(0f)] private float hitImpulse = 0.12f;
         [SerializeField, Min(0f)] private float parryImpulse = 0.22f;
+        [SerializeField, Min(0f)] private float finisherHitStop = 0.25f;
+        [SerializeField, Min(0f)] private float finisherImpulse = 0.32f;
 
         private DamageReceiver receiver;
         private LocalHitStop localHitStop;
@@ -48,12 +50,14 @@ namespace BossFight.Feedback
                 return;
             }
 
-            localHitStop.FreezeFor(hitStopDuration);
+            bool finisher = result.IsGuardBreakFinisher;
+            float pause = finisher ? finisherHitStop : hitStopDuration;
+            localHitStop.FreezeFor(pause);
             if (result.Info.Attacker != null && result.Info.Attacker.TryGetComponent(out LocalHitStop attacker))
             {
-                attacker.FreezeFor(hitStopDuration);
+                attacker.FreezeFor(pause);
             }
-            impulse.GenerateImpulseWithForce(hitImpulse);
+            impulse.GenerateImpulseWithForce(finisher ? finisherImpulse : hitImpulse);
         }
     }
 }

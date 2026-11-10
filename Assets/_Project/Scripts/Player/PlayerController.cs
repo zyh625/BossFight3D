@@ -42,11 +42,16 @@ namespace BossFight.Player
 
         /// <summary>蓄力进度 0~1，不在蓄力时为 0。</summary>
         public float ChargeRatio => machine.Current == context.Charge ? context.Charge.ChargeRatio : 0f;
+        public float VisibleChargeRatio => machine.Current == context.Charge ? context.Charge.DisplayRatio : 0f;
+        public PlayerAttackKind ActiveAttack => machine.Current == context.Attack ? context.Attack.Kind : PlayerAttackKind.None;
+        public bool IsAttackWindingUp => machine.Current == context.Attack && context.Attack.IsWindingUp;
+        public float AttackWindupRatio => machine.Current == context.Attack ? context.Attack.WindupRatio : 0f;
 
         private void Awake()
         {
             health = GetComponent<Health>();
             damageReceiver = GetComponent<DamageReceiver>();
+            stamina.CostMultiplier = combatConfig.StaminaCostMultiplier;
             var buffer = new InputBuffer(combatConfig.InputBufferTime);
 
             context = new PlayerContext
@@ -69,6 +74,7 @@ namespace BossFight.Player
             context.Attack = new PlayerAttackState(context);
             context.Charge = new PlayerChargeState(context);
             context.Roll = new PlayerRollState(context);
+            context.Jump = new PlayerJumpState(context);
             hitState = new PlayerHitState(context);
         }
 
@@ -87,9 +93,18 @@ namespace BossFight.Player
             {
                 context.Buffer.Push(PlayerCommand.Roll);
             }
+            else if (input.JumpPressedThisFrame)
+            {
+                context.Buffer.Push(PlayerCommand.Jump);
+            }
+            else if ((input.AttackPressedThisFrame && input.ChargeHeld) || (input.ChargePressedThisFrame && input.AttackHeld))
+            {
+                context.ChargeHoldConsumed = true;
+                context.Buffer.Push(PlayerCommand.VariedAttack);
+            }
             else if (input.AttackPressedThisFrame)
             {
-                context.Buffer.Push(input.ChargeHeld ? PlayerCommand.VariedAttack : PlayerCommand.LightAttack);
+                context.Buffer.Push(PlayerCommand.LightAttack);
             }
         }
 

@@ -24,6 +24,9 @@ namespace BossFight.Player
         [Range(0f, 1f)]
         [SerializeField] private float chargeMoveMultiplier = 0.35f;
         [SerializeField] private string chargeAnimationState = "HeavyCharge";
+        [Tooltip("这段时间内优先识别快速双键，暂不展示蓄力动作和进度")]
+        [SerializeField, Min(0f)] private float chargePresentationDelay = 0.12f;
+        [SerializeField, Min(0.01f)] private float heavyLeapHeight = 0.85f;
 
         [Header("切手技（按住右键时按下左键）")]
         [SerializeField] private AttackData variedAttack;
@@ -49,6 +52,12 @@ namespace BossFight.Player
         [SerializeField] private float rollInvulnerabilityStart = 0.05f;
         [Min(0f)]
         [SerializeField] private float rollInvulnerabilityEnd = 0.35f;
+        [Tooltip("翻滚进行到这个时间之后，可以直接接攻击或再次翻滚（秒）。必须晚于无敌帧结束")]
+        [SerializeField, Min(0f)] private float rollCancelTime = 0.42f;
+
+        [Header("跳跃")]
+        [SerializeField, Min(0.01f)] private float jumpHeight = 1.35f;
+        [SerializeField, Range(0f, 1f)] private float airMoveMultiplier = 0.85f;
 
         [Header("受击")]
         [SerializeField, Min(0f)] private float hitStunDuration = 0.4f;
@@ -56,11 +65,15 @@ namespace BossFight.Player
 
         [Header("通用")]
         [Tooltip("输入缓冲时长（秒）")]
-        [SerializeField] private float inputBufferTime = 0.2f;
+        [SerializeField] private float inputBufferTime = 0.35f;
         [Tooltip("攻击前摇期间，角色转向输入方向的角速度（度/秒）")]
-        [SerializeField] private float attackTurnSpeed = 720f;
+        [SerializeField] private float attackTurnSpeed = 1440f;
+        [Tooltip("攻击后摇过了衔接点之后，移动输入超过这个幅度（0~1）就提前结束后摇")]
+        [SerializeField, Range(0.1f, 1f)] private float moveCancelThreshold = 0.5f;
         [Tooltip("奔跑每秒消耗的体力")]
         [SerializeField] private float sprintStaminaPerSecond = 12f;
+        [Tooltip("调试用：玩家所有体力消耗乘以这个倍率。正式数值是 1，调小便于反复测试")]
+        [SerializeField, Range(0f, 1f)] private float staminaCostMultiplier = 1f;
 
         public int LightComboLength => lightCombo != null ? lightCombo.Length : 0;
         public AttackData GetLight(int index) => lightCombo[index];
@@ -70,6 +83,8 @@ namespace BossFight.Player
         public float FullChargeDamageMultiplier => fullChargeDamageMultiplier;
         public float ChargeMoveMultiplier => chargeMoveMultiplier;
         public string ChargeAnimationState => chargeAnimationState;
+        public float ChargePresentationDelay => chargePresentationDelay;
+        public float HeavyLeapHeight => heavyLeapHeight;
         public AttackData VariedAttack => variedAttack;
         public float SeeThroughWindow => seeThroughWindow;
         public float CounterDamageMultiplier => counterDamageMultiplier;
@@ -80,10 +95,15 @@ namespace BossFight.Player
         public float RollDistance => rollDistance;
         public float RollInvulnerabilityStart => rollInvulnerabilityStart;
         public float RollInvulnerabilityEnd => rollInvulnerabilityEnd;
+        public float RollCancelTime => rollCancelTime;
+        public float MoveCancelThreshold => moveCancelThreshold;
+        public float JumpHeight => jumpHeight;
+        public float AirMoveMultiplier => airMoveMultiplier;
         public float HitStunDuration => hitStunDuration;
         public float HitStunRollCancelTime => hitStunRollCancelTime;
         public float InputBufferTime => inputBufferTime;
         public float AttackTurnSpeed => attackTurnSpeed;
         public float SprintStaminaPerSecond => sprintStaminaPerSecond;
+        public float StaminaCostMultiplier => staminaCostMultiplier;
     }
 }

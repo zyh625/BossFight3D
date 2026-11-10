@@ -11,6 +11,10 @@
         "BossFight.Combat",
         "BossFight.Character",
         "BossFight.Player",
+        "BossFight.CameraRig",
+        "BossFight.Game",
+        "Unity.Cinemachine",
+        "UnityEngine.UI",
         "BossFight.DevTools"
     ],
     "includePlatforms": [],

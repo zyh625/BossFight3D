@@ -65,10 +65,11 @@ namespace BossFight.Combat
             onlyTarget = targetFilter;
 
             alreadyHit.Clear();
-            previousBase = basePoint.position;
-            previousTip = tipPoint.position;
             IsActive = true;
             Activated?.Invoke(activeDuration);
+            // 启动回调可以摆放占位武器。扫掠应从这一刀的起始姿势开始。
+            previousBase = basePoint.position;
+            previousTip = tipPoint.position;
         }
 
         public void End()

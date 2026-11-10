@@ -1,13 +1,13 @@
 using BossFight.Character;
 using BossFight.Combat;
+using BossFight.Player;
+using BossFight.Player.States;
 using UnityEngine;
 
 namespace BossFight.DevTools
 {
     /// <summary>
-    /// 占位用的程序化挥剑：角色还是胶囊体、没有骨骼动画时，在判定期间让武器挂点绕身体扫过正前方，
-    /// 这样不导入任何动画也能看到挥砍、测试命中判定。
-    /// 一旦换上带 Humanoid 骨骼的模型，武器跟随手骨，这个组件会自动停用。
+    /// 胶囊体的背剑蓄力、横斩与下劈。Humanoid 模型使用手骨挂点。
     /// </summary>
     public sealed class PlaceholderWeaponSwing : MonoBehaviour
     {
@@ -23,16 +23,26 @@ namespace BossFight.DevTools
         [SerializeField] private float height = 1.1f;
         [Tooltip("不挥砍时剑的上扬角度")]
         [SerializeField] private float restPitch = -50f;
+        [SerializeField] private float overheadPitch = -104f;
+        [SerializeField] private float chopEndPitch = 58f;
+        [SerializeField] private float chopGripHeight = 1.32f;
+        [Tooltip("轻攻击前摇时把剑向后多拉开的比例。前摇第一帧就开始动，按键才有即时反馈")]
+        [SerializeField] private float cockBackFactor = 1.3f;
+        [Tooltip("前摇的前多少比例用来完成拉剑动作（越小拉得越快）")]
+        [SerializeField, Range(0.1f, 1f)] private float cockBackPortion = 0.6f;
 
         private float duration;
         private float elapsed;
         private bool swinging;
         private float fromAngle;
         private LocalHitStop hitStop;
+        private PlayerController player;
+        private bool chopping;
 
         private void Start()
         {
             hitStop = GetComponent<LocalHitStop>();
+            player = GetComponent<PlayerController>();
             if (visual.HasHumanoid)
             {
                 enabled = false;
@@ -60,7 +70,15 @@ namespace BossFight.DevTools
             duration = Mathf.Max(activeDuration, 0.01f);
             elapsed = 0f;
             swinging = true;
-            ApplyPose(fromAngle, 0f);
+            chopping = player != null && (player.ActiveAttack is PlayerAttackKind.Combination or PlayerAttackKind.ChargedHeavy);
+            if (chopping)
+            {
+                ApplyChop(0f);
+            }
+            else
+            {
+                ApplyPose(fromAngle * cockBackFactor, 0f);
+            }
         }
 
         private void OnDeactivated()
@@ -72,7 +90,10 @@ namespace BossFight.DevTools
 
             // 下一刀从另一侧挥回来，连段看起来是左右交替的
             swinging = false;
-            fromAngle = -fromAngle;
+            if (!chopping)
+            {
+                fromAngle = -fromAngle;
+            }
             ApplyPose(fromAngle, restPitch);
         }
 
@@ -81,12 +102,46 @@ namespace BossFight.DevTools
         {
             if (!swinging)
             {
+                if (player != null && player.VisibleChargeRatio > 0f)
+                {
+                    socket.localPosition = new Vector3(reach * 0.78f, height, -reach);
+                    socket.localRotation = Quaternion.Euler(-28f, 165f, 0f);
+                }
+                else if (player != null && player.IsAttackWindingUp
+                    && (player.ActiveAttack is PlayerAttackKind.Combination or PlayerAttackKind.ChargedHeavy))
+                {
+                    ApplyChop(0f);
+                }
+                else if (player != null && player.IsAttackWindingUp && player.ActiveAttack == PlayerAttackKind.Light)
+                {
+                    // 轻攻击前摇：剑从待机姿势迅速放平并向后拉开，随后的判定阶段从这个位置挥出
+                    float pull = Mathf.Clamp01(player.AttackWindupRatio / cockBackPortion);
+                    pull = 1f - (1f - pull) * (1f - pull);
+                    ApplyPose(Mathf.Lerp(fromAngle, fromAngle * cockBackFactor, pull), Mathf.Lerp(restPitch, 0f, pull));
+                }
+                else
+                {
+                    ApplyPose(fromAngle, restPitch);
+                }
                 return;
             }
 
             elapsed += hitStop != null ? hitStop.DeltaTime : Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            ApplyPose(Mathf.Lerp(fromAngle, -fromAngle, t), 0f);
+            if (chopping)
+            {
+                ApplyChop(t);
+            }
+            else
+            {
+                ApplyPose(Mathf.Lerp(fromAngle * cockBackFactor, -fromAngle, t), 0f);
+            }
+        }
+
+        private void ApplyChop(float fraction)
+        {
+            socket.localPosition = new Vector3(0f, chopGripHeight, reach);
+            socket.localRotation = Quaternion.Euler(Mathf.Lerp(overheadPitch, chopEndPitch, fraction), 0f, 0f);
         }
 
         private void ApplyPose(float yaw, float pitch)
