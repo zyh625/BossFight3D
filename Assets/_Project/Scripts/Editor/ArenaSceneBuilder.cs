@@ -1,4 +1,6 @@
 using BossFight.CameraRig;
+using BossFight.Combat;
+using BossFight.DevTools;
 using BossFight.Player;
 using Unity.Cinemachine;
 using UnityEditor;
@@ -32,15 +34,17 @@ namespace BossFight.EditorTools
                 playerPrefab = PlayerPrefabBuilder.Build();
             }
 
+
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             BuildArena();
             BuildLighting();
 
             var player = (GameObject)PrefabUtility.InstantiatePrefab(playerPrefab);
-            player.transform.position = new Vector3(0f, 0f, -10f);
+            player.transform.position = new Vector3(0f, 0f, -6f);
 
             BuildCameras(player.GetComponent<PlayerController>(), player.GetComponent<PlayerInputReader>());
+            BuildTrainingDummy(player);
 
             ProjectPaths.EnsureFolderFor(ProjectPaths.ArenaScene);
             EditorSceneManager.SaveScene(scene, ProjectPaths.ArenaScene);
@@ -219,6 +223,25 @@ namespace BossFight.EditorTools
             EditorWiring.SetRef(orbitInput, "orbital", orbital);
 
             rig.AddComponent<CursorLocker>();
+        }
+
+        /// <summary>场地中央放一个训练木桩，并接好调试显示。M4 起这个位置换成 Boss。</summary>
+        private static void BuildTrainingDummy(GameObject player)
+        {
+            var dummyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ProjectPaths.DummyPrefab);
+            if (dummyPrefab == null)
+            {
+                dummyPrefab = DummyPrefabBuilder.Build();
+            }
+
+            var dummy = (GameObject)PrefabUtility.InstantiatePrefab(dummyPrefab);
+            dummy.transform.position = Vector3.zero;
+            EditorWiring.SetRef(dummy.GetComponent<TrainingDummy>(), "sparringTarget", player.GetComponent<DamageReceiver>());
+
+            var overlay = new GameObject("DevTools").AddComponent<CombatDebugOverlay>();
+            EditorWiring.SetRef(overlay, "player", player.GetComponent<PlayerController>());
+            EditorWiring.SetRef(overlay, "playerStamina", player.GetComponent<Stamina>());
+            EditorWiring.SetRef(overlay, "target", dummy.GetComponent<DamageReceiver>());
         }
 
         private static GameObject CreateBlock(

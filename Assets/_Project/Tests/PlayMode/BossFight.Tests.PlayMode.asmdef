@@ -1,0 +1,24 @@
+{
+    "name": "BossFight.Tests.PlayMode",
+    "rootNamespace": "BossFight.Tests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework",
+        "BossFight.Core",
+        "BossFight.Combat",
+        "BossFight.Character",
+        "BossFight.Player",
+        "BossFight.DevTools"
+    ],
+    "includePlatforms": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ]
+}

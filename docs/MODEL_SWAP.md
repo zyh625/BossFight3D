@@ -28,7 +28,7 @@ Player（逻辑根）        CharacterController、状态机、Hurtbox、所有�
    - 脚不贴地：调整模型在 `Visual` 下的本地 Y 坐标，或回 Blender 把原点放到脚底。
    - 握剑姿势不对：在预制体里调整 `Sockets/Socket_WeaponR` 的本地位置和旋转（它就是"武器相对手骨的偏移"）。
 
-> 注意：`Tools/BossFight/M1/3 Build Player Prefab` 会按 Y Bot 整体重建预制体，换上自己的模型之后不要再执行它。
+> 注意：`Tools/BossFight/3 Build Prefabs` 会按 Y Bot 整体重建预制体，换上自己的模型之后不要再执行它。
 > 到你准备换模型的那个里程碑，我会把搭建脚本改成"可指定模型路径"。
 
 ## 3. Blender 制作规范

@@ -9,6 +9,10 @@ namespace BossFight.EditorTools
     {
         public const string Player = "Player";
         public const string Environment = "Environment";
+        /// <summary>敌人的实体碰撞（挡路用）。</summary>
+        public const string Enemy = "Enemy";
+        /// <summary>受击判定体。Hitbox 只检测这一层。</summary>
+        public const string Hurtbox = "Hurtbox";
 
         private const int FirstUserLayer = 6;
         private const int LayerCount = 32;
@@ -21,6 +25,8 @@ namespace BossFight.EditorTools
 
             EnsureLayer(layers, Player);
             EnsureLayer(layers, Environment);
+            EnsureLayer(layers, Enemy);
+            EnsureLayer(layers, Hurtbox);
 
             tagManager.ApplyModifiedPropertiesWithoutUndo();
             AssetDatabase.SaveAssets();
@@ -31,7 +37,7 @@ namespace BossFight.EditorTools
             int layer = LayerMask.NameToLayer(layerName);
             if (layer < 0)
             {
-                throw new InvalidOperationException($"层 '{layerName}' 不存在，请先执行 Tools/BossFight/M1/1 Setup Project");
+                throw new InvalidOperationException($"层 '{layerName}' 不存在，请先执行 Tools/BossFight/1 Setup Project");
             }
 
             return layer;

@@ -2,6 +2,8 @@
     "name": "BossFight.Player",
     "rootNamespace": "BossFight.Player",
     "references": [
+        "BossFight.Core",
+        "BossFight.Combat",
         "BossFight.Character",
         "Unity.InputSystem"
     ],

@@ -10,7 +10,7 @@
                 { "name": "Sprint", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f04", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "Roll", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f05", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "Attack", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f06", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
-                { "name": "Block", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f07", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "Charge", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f07", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "LockOn", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f08", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false }
             ],
             "bindings": [
@@ -23,7 +23,7 @@
                 { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f16", "path": "<Keyboard>/leftShift", "interactions": "", "processors": "", "groups": "", "action": "Sprint", "isComposite": false, "isPartOfComposite": false },
                 { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f17", "path": "<Keyboard>/space", "interactions": "", "processors": "", "groups": "", "action": "Roll", "isComposite": false, "isPartOfComposite": false },
                 { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f18", "path": "<Mouse>/leftButton", "interactions": "", "processors": "", "groups": "", "action": "Attack", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f19", "path": "<Mouse>/rightButton", "interactions": "", "processors": "", "groups": "", "action": "Block", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f19", "path": "<Mouse>/rightButton", "interactions": "", "processors": "", "groups": "", "action": "Charge", "isComposite": false, "isPartOfComposite": false },
                 { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f1a", "path": "<Mouse>/middleButton", "interactions": "", "processors": "", "groups": "", "action": "LockOn", "isComposite": false, "isPartOfComposite": false }
             ]
         }

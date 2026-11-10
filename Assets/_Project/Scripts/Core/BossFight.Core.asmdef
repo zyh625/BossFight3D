@@ -1,0 +1,6 @@
+{
+    "name": "BossFight.Core",
+    "rootNamespace": "BossFight.Core",
+    "references": [],
+    "autoReferenced": true
+}

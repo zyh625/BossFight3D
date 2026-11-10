@@ -14,7 +14,7 @@
 ## Mixamo 下载清单
 
 需要登录 Adobe 账号（免费）。下载后**按下表改文件名**放到指定目录，然后在 Unity 里执行
-`Tools/BossFight/M1/Build All`，导入设置（Humanoid、循环、根运动）由脚本自动完成。
+`Tools/BossFight/Build All`，导入设置（Humanoid、循环、根运动）由脚本自动完成。
 
 动画名是 Mixamo 站内搜索用的名字，如果站内名称有出入，选一个观感接近的即可——代码只认下表的**文件名**。
 
@@ -34,5 +34,15 @@
 | M1 | Idle（或 Breathing Idle） | — | `Idle.fbx` |
 | M1 | Walking | 勾选 In Place | `Walk.fbx` |
 | M1 | Running（或 Fast Run） | 勾选 In Place | `Run.fbx` |
+| M2 | Stable Sword Outward Slash（任意单手横斩） | — | `Light1.fbx` |
+| M2 | Stable Sword Inward Slash（反方向横斩） | — | `Light2.fbx` |
+| M2 | Great Sword Slash（力度更大的一刀） | — | `Light3.fbx` |
+| M2 | Great Sword Idle（举剑蓄力的静止姿势，任意持剑待机均可） | — | `HeavyCharge.fbx` |
+| M2 | Great Sword Overhead Slash / Sword And Shield Attack（自上而下的重劈） | — | `Heavy.fbx` |
+| M3 | Forward Roll（向前翻滚，可选） | 有 In Place 时勾选 | `Roll.fbx` |
+
+M2 的 5 个攻击动画是可选的：缺哪个，对应的动作就没有动画但玩法照常。攻击动画会被自动调整播放速度，
+使其总时长等于数据里的"前摇 + 判定 + 后摇"，所以挑动作时只看姿势，不用在意原始速度。
+切手技暂复用 `Heavy.fbx`。翻滚位移和无敌帧由代码驱动。
 
 （后续里程碑的动画会追加到这张表里。）

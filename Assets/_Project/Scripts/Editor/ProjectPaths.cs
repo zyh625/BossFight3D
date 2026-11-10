@@ -10,9 +10,12 @@ namespace BossFight.EditorTools
 
         public const string InputActions = Root + "/Input/GameInput.inputactions";
         public const string PlayerMovementConfig = Root + "/Data/PlayerMovementConfig.asset";
+        public const string PlayerCombatConfig = Root + "/Data/PlayerCombatConfig.asset";
+        public const string AttackDataFolder = Root + "/Data/Attacks";
 
         public const string Materials = Root + "/Art/Materials";
         public const string PlayerPrefab = Root + "/Prefabs/Player.prefab";
+        public const string DummyPrefab = Root + "/Prefabs/TrainingDummy.prefab";
         public const string ArenaScene = Root + "/Scenes/Arena.unity";
         public const string ArenaVolumeProfile = Root + "/Settings/ArenaVolumeProfile.asset";
 

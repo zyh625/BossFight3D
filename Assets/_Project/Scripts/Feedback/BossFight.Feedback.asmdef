@@ -1,0 +1,9 @@
+{
+    "name": "BossFight.Feedback",
+    "rootNamespace": "BossFight.Feedback",
+    "references": [
+        "BossFight.Core",
+        "BossFight.Combat"
+    ],
+    "autoReferenced": true
+}

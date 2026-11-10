@@ -1,0 +1,70 @@
+using BossFight.Combat;
+using BossFight.Core;
+using UnityEngine;
+
+namespace BossFight.Player.States
+{
+    public sealed class PlayerRollState : IState
+    {
+        private readonly PlayerContext ctx;
+        private Vector3 direction;
+        private double startedAt;
+        private float staminaSpent;
+        private float elapsed;
+
+        public PlayerRollState(PlayerContext context)
+        {
+            ctx = context;
+        }
+
+        public void Setup(float spent)
+        {
+            staminaSpent = spent;
+        }
+
+        public void Enter()
+        {
+            startedAt = Time.timeAsDouble;
+            elapsed = 0f;
+            Vector2 move = ctx.Input.Move;
+            direction = move.sqrMagnitude > 0.01f
+                ? ctx.Movement.ToWorldDirection(move).normalized
+                : ctx.Transform.forward;
+            ctx.Transform.rotation = Quaternion.LookRotation(direction);
+            ctx.Stamina.RegenMode = StaminaRegenMode.None;
+            ctx.Visual.Play("Roll", 0.05f, ctx.Combat.RollDuration);
+        }
+
+        public void Tick(float dt)
+        {
+            float duration = ctx.Combat.RollDuration;
+            float moveTime = Mathf.Min(dt, duration - elapsed);
+            float speed = dt > 0f ? ctx.Combat.RollDistance / duration * (moveTime / dt) : 0f;
+            ctx.Motor.Move(direction * speed, dt);
+            elapsed += dt;
+            if (elapsed >= duration)
+            {
+                ctx.ToLocomotion();
+            }
+        }
+
+        public bool TryDodge()
+        {
+            double sinceStart = Time.timeAsDouble - startedAt;
+            if (sinceStart < ctx.Combat.RollInvulnerabilityStart || sinceStart >= ctx.Combat.RollInvulnerabilityEnd)
+            {
+                return false;
+            }
+
+            // 一次翻滚可能躲过多段攻击，只返还一次。
+            float refund = staminaSpent;
+            staminaSpent = 0f;
+            ctx.Stamina.Refund(refund);
+            return true;
+        }
+
+        public void Exit()
+        {
+        }
+    }
+}

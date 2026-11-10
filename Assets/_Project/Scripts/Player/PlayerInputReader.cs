@@ -17,6 +17,9 @@ namespace BossFight.Player
         private InputAction move;
         private InputAction look;
         private InputAction sprint;
+        private InputAction roll;
+        private InputAction attack;
+        private InputAction charge;
 
         /// <summary>移动输入，长度 ≤ 1。</summary>
         public Vector2 Move => Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1f);
@@ -25,6 +28,14 @@ namespace BossFight.Player
         public Vector2 Look => look.ReadValue<Vector2>();
 
         public bool SprintHeld => sprint.IsPressed();
+        public bool RollPressedThisFrame => roll.WasPressedThisFrame();
+
+        /// <summary>左键：这一帧刚按下。</summary>
+        public bool AttackPressedThisFrame => attack.WasPressedThisFrame();
+
+        /// <summary>右键：按住蓄力。</summary>
+        public bool ChargeHeld => charge.IsPressed();
+        public bool ChargePressedThisFrame => charge.WasPressedThisFrame();
 
         private void Awake()
         {
@@ -32,6 +43,9 @@ namespace BossFight.Player
             move = map.FindAction("Move", throwIfNotFound: true);
             look = map.FindAction("Look", throwIfNotFound: true);
             sprint = map.FindAction("Sprint", throwIfNotFound: true);
+            roll = map.FindAction("Roll", throwIfNotFound: true);
+            attack = map.FindAction("Attack", throwIfNotFound: true);
+            charge = map.FindAction("Charge", throwIfNotFound: true);
         }
 
         private void OnEnable()

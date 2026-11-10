@@ -28,13 +28,21 @@ namespace BossFight.Player
             }
         }
 
-        public void Tick(Vector2 moveInput, bool wantsSprint, float dt)
+        /// <summary>进入不由本组件控制位移的状态（攻击等）时调用，避免回来时带着旧速度。</summary>
+        public void ResetVelocity()
+        {
+            velocity = Vector3.zero;
+            IsSprinting = false;
+        }
+
+        /// <param name="speedMultiplier">速度倍率，蓄力时小于 1。</param>
+        public void Tick(Vector2 moveInput, bool wantsSprint, float dt, float speedMultiplier = 1f)
         {
             Vector3 direction = ToWorldDirection(moveInput);
             bool hasInput = direction.sqrMagnitude > 0.0001f;
             IsSprinting = hasInput && wantsSprint;
 
-            float targetSpeed = IsSprinting ? config.RunSpeed : config.WalkSpeed;
+            float targetSpeed = (IsSprinting ? config.RunSpeed : config.WalkSpeed) * speedMultiplier;
             Vector3 targetVelocity = hasInput ? direction * targetSpeed : Vector3.zero;
             float rate = hasInput ? config.Acceleration : config.Deceleration;
 
@@ -48,7 +56,7 @@ namespace BossFight.Player
         }
 
         /// <summary>把 WASD 输入投影到相机的水平朝向上：按 W 永远是"朝屏幕里走"。</summary>
-        private Vector3 ToWorldDirection(Vector2 input)
+        public Vector3 ToWorldDirection(Vector2 input)
         {
             if (cameraTransform == null)
             {

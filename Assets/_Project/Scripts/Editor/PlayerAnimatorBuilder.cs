@@ -7,8 +7,8 @@ namespace BossFight.EditorTools
 {
     /// <summary>
     /// 用代码生成玩家的 Animator Controller。
-    /// M1 只有一个 Locomotion 混合树（待机/走/跑，按 Speed 参数混合）；
-    /// 之后的里程碑往这里追加状态，状态之间不连转移线，由代码 CrossFade 切换。
+    /// 一个 Locomotion 混合树（待机/走/跑，按 Speed 参数混合）+ 若干动作状态（攻击等）。
+    /// 状态之间不连转移线，全部由代码 CrossFade 切换。
     /// </summary>
     internal static class PlayerAnimatorBuilder
     {
@@ -16,6 +16,12 @@ namespace BossFight.EditorTools
         // 走/跑速度在 PlayerMovementConfig 里是 3.5 / 6.5，3.5 会落在走和跑之间，看起来是小跑。
         private const float WalkThreshold = 1.8f;
         private const float RunThreshold = 5.5f;
+
+        /// <summary>
+        /// 动作类状态：状态名 = 动画文件名。对应的 FBX 存在才会加入，缺了也不影响玩法
+        /// （CharacterVisual.Play 找不到状态时什么都不做）。
+        /// </summary>
+        private static readonly string[] ActionStates = { "Light1", "Light2", "Light3", "HeavyCharge", "Heavy", "Roll" };
 
         /// <returns>三个动画齐全并生成成功时返回 true。</returns>
         public static bool Build()
@@ -37,13 +43,36 @@ namespace BossFight.EditorTools
 
             controller.AddParameter(AnimParams.SpeedName, AnimatorControllerParameterType.Float);
 
-            controller.CreateBlendTreeInController("Locomotion", out BlendTree tree, 0);
+            controller.CreateBlendTreeInController(AnimParams.LocomotionState, out BlendTree tree, 0);
             tree.blendType = BlendTreeType.Simple1D;
             tree.blendParameter = AnimParams.SpeedName;
             tree.useAutomaticThresholds = false;
             tree.AddChild(idle, 0f);
             tree.AddChild(walk, WalkThreshold);
             tree.AddChild(run, RunThreshold);
+
+            // 播放速度由 ActionSpeed 参数控制：代码按"数据里的动作时长"算出倍率，让动画去适配数据
+            controller.AddParameter(new AnimatorControllerParameter
+            {
+                name = AnimParams.ActionSpeedName,
+                type = AnimatorControllerParameterType.Float,
+                defaultFloat = 1f
+            });
+
+            AnimatorStateMachine stateMachine = controller.layers[0].stateMachine;
+            foreach (string stateName in ActionStates)
+            {
+                AnimationClip clip = Load(stateName);
+                if (clip == null)
+                {
+                    continue;
+                }
+
+                AnimatorState state = stateMachine.AddState(stateName);
+                state.motion = clip;
+                state.speedParameterActive = true;
+                state.speedParameter = AnimParams.ActionSpeedName;
+            }
 
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();

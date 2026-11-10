@@ -2,6 +2,10 @@
     "name": "BossFight.Editor",
     "rootNamespace": "BossFight.EditorTools",
     "references": [
+        "BossFight.Core",
+        "BossFight.Combat",
+        "BossFight.Feedback",
+        "BossFight.DevTools",
         "BossFight.Character",
         "BossFight.Player",
         "BossFight.CameraRig",

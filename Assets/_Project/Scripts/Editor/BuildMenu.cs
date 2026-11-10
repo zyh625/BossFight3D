@@ -4,19 +4,19 @@ using UnityEngine;
 namespace BossFight.EditorTools
 {
     /// <summary>
-    /// M1 的一键搭建入口（菜单 Tools/BossFight/M1）。
+    /// 一键搭建入口（菜单 Tools/BossFight）。
     /// 每一步都可以重复执行；Build All 也能在命令行批处理模式下通过 -executeMethod 调用。
     /// </summary>
-    public static class M1Menu
+    public static class BuildMenu
     {
-        private const string Menu = "Tools/BossFight/M1/";
+        private const string Menu = "Tools/BossFight/";
 
         [MenuItem(Menu + "Build All（全部重建）", priority = 0)]
         public static void BuildAll()
         {
             SetupProject();
             ImportMixamo();
-            BuildPlayerPrefab();
+            BuildPrefabs();
             BuildArenaScene();
         }
 
@@ -42,10 +42,11 @@ namespace BossFight.EditorTools
             PlayerAnimatorBuilder.Build();
         }
 
-        [MenuItem(Menu + "3 Build Player Prefab（玩家预制体）", priority = 22)]
-        public static void BuildPlayerPrefab()
+        [MenuItem(Menu + "3 Build Prefabs（玩家、木桩预制体）", priority = 22)]
+        public static void BuildPrefabs()
         {
             PlayerPrefabBuilder.Build();
+            DummyPrefabBuilder.Build();
         }
 
         [MenuItem(Menu + "4 Build Arena Scene（场地场景）", priority = 23)]

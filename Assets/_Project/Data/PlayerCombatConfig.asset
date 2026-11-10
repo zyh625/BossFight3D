@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5bcb6f9273f70f469bb3e259fbeec47, type: 3}
+  m_Name: PlayerCombatConfig
+  m_EditorClassIdentifier: BossFight.Player::BossFight.Player.PlayerCombatConfig
+  lightCombo:
+  - {fileID: 11400000, guid: 3b2a9880604dfb44a996b95fe5b3b0e6, type: 2}
+  - {fileID: 11400000, guid: 6c510fb43fec9754e9fa1773e6ed8cb9, type: 2}
+  - {fileID: 11400000, guid: d705fa57ac2c5234283154566e871173, type: 2}
+  heavyAttack: {fileID: 11400000, guid: 2c26a8ae69f4f184591b1694a4bc9fca, type: 2}
+  chargeStaminaPerSecond: 35
+  fullChargeTime: 1
+  fullChargeDamageMultiplier: 1.55
+  chargeMoveMultiplier: 0.35
+  chargeAnimationState: HeavyCharge
+  variedAttack: {fileID: 11400000, guid: 4460f5dd330dfc045afda2d7adc2fd9c, type: 2}
+  seeThroughWindow: 0.2
+  counterDamageMultiplier: 1.3
+  counterBonusGuardDamage: 25
+  freeStaminaDuration: 3
+  rollStaminaCost: 20
+  rollDuration: 0.6
+  rollDistance: 4.5
+  rollInvulnerabilityStart: 0.05
+  rollInvulnerabilityEnd: 0.35
+  inputBufferTime: 0.2
+  attackTurnSpeed: 720
+  sprintStaminaPerSecond: 12

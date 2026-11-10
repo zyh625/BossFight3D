@@ -1,0 +1,11 @@
+{
+    "name": "BossFight.DevTools",
+    "rootNamespace": "BossFight.DevTools",
+    "references": [
+        "BossFight.Core",
+        "BossFight.Combat",
+        "BossFight.Character",
+        "BossFight.Player"
+    ],
+    "autoReferenced": true
+}

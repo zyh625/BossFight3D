@@ -14,7 +14,7 @@ namespace BossFight.EditorTools
     internal static class MixamoImportSetup
     {
         /// <summary>需要循环播放的动画（文件名，不含扩展名）。新增循环动画时在这里登记。</summary>
-        private static readonly HashSet<string> LoopingClips = new HashSet<string> { "Idle", "Walk", "Run" };
+        private static readonly HashSet<string> LoopingClips = new HashSet<string> { "Idle", "Walk", "Run", "HeavyCharge" };
 
         /// <returns>角色 FBX 是否存在并配置成功。</returns>
         public static bool Configure()
