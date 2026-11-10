@@ -1,0 +1,35 @@
+# Unity
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.vs/
+.idea/
+.vscode/
+crashlytics-build.properties
+
+# Mixamo 原始素材不进仓库（条款不允许单独再分发），下载清单见 docs/CREDITS.md
+/Assets/_Project/Art/Mixamo/
+/Assets/_Project/Art/Mixamo.meta
+
+# 由 Mixamo 素材生成的资源，克隆后用 Tools/BossFight 菜单重新生成
+/Assets/_Project/Generated/
+/Assets/_Project/Generated.meta

@@ -1,0 +1,17 @@
+{
+    "name": "BossFight.Editor",
+    "rootNamespace": "BossFight.EditorTools",
+    "references": [
+        "BossFight.Character",
+        "BossFight.Player",
+        "BossFight.CameraRig",
+        "Unity.Cinemachine",
+        "Unity.InputSystem",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "autoReferenced": false
+}

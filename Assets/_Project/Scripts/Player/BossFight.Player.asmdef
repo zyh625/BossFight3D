@@ -1,0 +1,9 @@
+{
+    "name": "BossFight.Player",
+    "rootNamespace": "BossFight.Player",
+    "references": [
+        "BossFight.Character",
+        "Unity.InputSystem"
+    ],
+    "autoReferenced": true
+}
