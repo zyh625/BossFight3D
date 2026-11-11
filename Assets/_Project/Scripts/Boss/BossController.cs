@@ -16,11 +16,15 @@ namespace BossFight.Boss
         BlinkSlash,
         SwordWave,
         Retreat,
-        PhaseTransition
+        PhaseTransition,
+        Whirlwind,
+        Lunge,
+        /// <summary>正在把双剑合成长剑。</summary>
+        Transform
     }
 
     [RequireComponent(typeof(DamageReceiver), typeof(CharacterMotor), typeof(GuardMeter))]
-    public sealed class BossController : MonoBehaviour, IDamageModifier
+    public sealed class BossController : MonoBehaviour, IDamageModifier, IProjectileReflector
     {
         [SerializeField] private BossCombatConfig config;
         [SerializeField] private BossWeaponRig weapons;
@@ -35,6 +39,11 @@ namespace BossFight.Boss
         private BossBlinkSlashState blinkSlash;
         private BossSwordWaveState swordWave;
         private BossRetreatState retreat;
+        private BossWhirlwindState whirlwind;
+        private BossLungeState lunge;
+        private BossFormState form;
+        private double longswordUntil;
+        private double longswordReadyAt;
         private BossPhaseState phaseTransition;
         private BossStaggerState stagger;
         private IState stopped;
@@ -44,11 +53,22 @@ namespace BossFight.Boss
         public GuardMeter Guard { get; private set; }
         public BossStatus Status { get; private set; }
         public bool IsPhaseTwo { get; private set; }
-        public bool CanGuard => Status == BossStatus.Approach && !Guard.IsWeak && Guard.Current > 0f;
+        /// <summary>二阶段的长剑形态：攻击更远、连招变为四连击、不格挡也不会被打断。</summary>
+        public bool IsLongsword { get; private set; }
+
+        /// <summary>旋风斩旋转期间会把飞镖弹回去。</summary>
+        public bool ReflectsProjectiles => Status == BossStatus.Whirlwind && whirlwind.IsSpinning;
+
+        // 长剑形态不格挡：每一击都同时扣血和扣格挡条，换来的是它不会被打断
+        public bool CanGuard => Status == BossStatus.Approach && !IsLongsword && !Guard.IsWeak && Guard.Current > 0f;
         public int StrikeNumber => Status == BossStatus.Combo ? combo.Index + 1 : 0;
-        public int ComboLength => config.ComboLength;
+        public int ComboLength => config.GetComboLength(IsLongsword);
+        internal AttackData GetStrike(int index) => config.GetStrike(index, IsLongsword);
+        internal float AttackDistance => IsLongsword ? config.Skills.longsword.attackDistance : config.AttackDistance;
+        internal float SkillScale => IsLongsword ? config.Skills.longsword.skillScale : 1f;
         public float WindupRemaining => machine.Current is IBossWindup windup ? windup.WindupRemaining : 0f;
-        public bool IsStriking => Status == BossStatus.Combo && weapons.Hitbox.IsActive;
+        public bool IsStriking => Status is BossStatus.Combo or BossStatus.Whirlwind or BossStatus.Lunge
+            && weapons.Hitbox.IsActive;
         public float PhaseTransitionRemaining => Status == BossStatus.PhaseTransition ? phaseTransition.Remaining : 0f;
 
         public BossCombatConfig Config => config;
@@ -74,6 +94,9 @@ namespace BossFight.Boss
             blinkSlash = new BossBlinkSlashState(this);
             swordWave = new BossSwordWaveState(this);
             retreat = new BossRetreatState(this);
+            whirlwind = new BossWhirlwindState(this);
+            lunge = new BossLungeState(this);
+            form = new BossFormState(this);
             phaseTransition = new BossPhaseState(this);
             stagger = new BossStaggerState(this);
             stopped = new BossStoppedState(this);
@@ -130,6 +153,9 @@ namespace BossFight.Boss
             machine.Tick(dt);
         }
 
+        /// <summary>到目标的水平距离。调试显示和测试使用。</summary>
+        public float DirectionToTargetDistance => target != null ? DirectionToTarget().magnitude : 0f;
+
         internal Vector3 DirectionToTarget()
         {
             Vector3 direction = target.transform.position - transform.position;
@@ -143,6 +169,7 @@ namespace BossFight.Boss
             {
                 Guard.BeginWeakness();
             }
+
             ChangeState(BossStatus.Approach, approach);
         }
 
@@ -154,7 +181,45 @@ namespace BossFight.Boss
                 case BossMove.BlinkSlash: ChangeState(BossStatus.BlinkSlash, blinkSlash, move); break;
                 case BossMove.SwordWave: ChangeState(BossStatus.SwordWave, swordWave, move); break;
                 case BossMove.Retreat: ChangeState(BossStatus.Retreat, retreat, move); break;
+                case BossMove.Whirlwind: ChangeState(BossStatus.Whirlwind, whirlwind, move); break;
+                case BossMove.Lunge: ChangeState(BossStatus.Lunge, lunge, move); break;
             }
+        }
+
+        /// <summary>二阶段、玩家离得够远、冷却结束时，开始合剑。由追击状态在选招之前询问。</summary>
+        internal bool TryBeginTransform(float distance)
+        {
+            var settings = config.Skills.longsword;
+            if (!settings.enabled || !IsPhaseTwo || IsLongsword || skillVisuals == null || !config.HasLongswordCombo
+                || distance < settings.minDistance || ActionTime < longswordReadyAt)
+            {
+                return false;
+            }
+
+            ChangeState(BossStatus.Transform, form);
+            return true;
+        }
+
+        internal void BeginLongsword()
+        {
+            IsLongsword = true;
+            longswordUntil = ActionTime + config.Skills.longsword.duration;
+            weapons.SetLongsword(true, config.Skills.longsword.reachScale);
+        }
+
+        internal void ExpireLongswordIfDue()
+        {
+            if (IsLongsword && ActionTime >= longswordUntil)
+            {
+                EndLongsword();
+            }
+        }
+
+        private void EndLongsword()
+        {
+            IsLongsword = false;
+            longswordReadyAt = ActionTime + config.Skills.longsword.cooldown;
+            weapons.SetLongsword(false, 1f);
         }
 
         private void ChangeState(BossStatus status, IState state, BossMove move = BossMove.None)
@@ -192,6 +257,10 @@ namespace BossFight.Boss
                     damage.Info.Impact |= AttackImpact.GuardBreakFinisher;
                 }
             }
+            else if (IsLongsword)
+            {
+                Guard.Absorb(damage.Info.GuardDamage);
+            }
             else if (CanCounterDrainGuard(damage.Info))
             {
                 Guard.Absorb(damage.Info.GuardDamage);
@@ -218,11 +287,17 @@ namespace BossFight.Boss
                 ChangeState(BossStatus.PhaseTransition, phaseTransition);
                 Brain.EnterPhaseTwo(ActionTime);
             }
-            else if (Guard.Current <= 0f && (result.Outcome == HitOutcome.Blocked || CanCounterDrainGuard(result.Info)))
+            else if (Guard.Current <= 0f && Status != BossStatus.Broken
+                && (result.Outcome == HitOutcome.Blocked || IsLongsword || CanCounterDrainGuard(result.Info)))
             {
+                // 长剑形态下格挡条被打空：形态被打散，并进入破防
+                if (IsLongsword)
+                {
+                    EndLongsword();
+                }
                 ChangeState(BossStatus.Broken, stagger);
             }
-            else if (Guard.IsWeak && result.FinalDamage > 0f
+            else if (!IsLongsword && Guard.IsWeak && result.FinalDamage > 0f
                 && result.Info.Impact != AttackImpact.Normal
                 && (Status == BossStatus.Approach || WindupRemaining > 0f))
             {
@@ -240,7 +315,8 @@ namespace BossFight.Boss
         private bool CanCounterDrainGuard(DamageInfo info)
         {
             // 识破的强化反击能在 Boss 出招时打掉格挡条。
-            return (Status is BossStatus.Combo or BossStatus.BlinkSlash or BossStatus.SwordWave)
+            return (Status is BossStatus.Combo or BossStatus.BlinkSlash or BossStatus.SwordWave
+                    or BossStatus.Whirlwind or BossStatus.Lunge)
                 && !Guard.IsWeak && (info.Impact & AttackImpact.Counter) != 0;
         }
     }

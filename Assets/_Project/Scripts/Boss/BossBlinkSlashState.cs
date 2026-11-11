@@ -23,6 +23,9 @@ namespace BossFight.Boss
 
         public BossBlinkSlashState(BossController boss) => this.boss = boss;
 
+        // 长剑形态下落点范围更大
+        private float Radius => settings.radius * boss.SkillScale;
+
         public void Enter()
         {
             settings = boss.Config.Skills.blinkSlash;
@@ -50,7 +53,7 @@ namespace BossFight.Boss
                 approachDirection = boss.DirectionToTarget().normalized;
                 landingPoint = boss.Target.transform.position;
                 boss.Motor.Teleport(landingPoint + Vector3.up * settings.height);
-                boss.SkillVisuals.ShowRing(landingPoint, settings.radius, new Color(1f, 0.23f, 0.08f));
+                boss.SkillVisuals.ShowRing(landingPoint, Radius, new Color(1f, 0.23f, 0.08f));
             }
 
             float impactTime = settings.windup + settings.hover;
@@ -122,7 +125,7 @@ namespace BossFight.Boss
 
             Vector3 delta = boss.Target.transform.position - landingPoint;
             delta.y = 0f;
-            if (delta.sqrMagnitude <= settings.radius * settings.radius)
+            if (delta.sqrMagnitude <= Radius * Radius)
             {
                 hit = true;
                 boss.SkillVisuals.DamageTarget(boss, settings.damage, landingPoint, delta.normalized);

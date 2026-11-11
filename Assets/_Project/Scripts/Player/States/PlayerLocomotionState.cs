@@ -27,6 +27,11 @@ namespace BossFight.Player.States
 
         public void Tick(float dt)
         {
+            if (ctx.Input.SwitchWeaponPressedThisFrame)
+            {
+                ctx.CycleForm();
+            }
+
             if (ctx.TryStartRoll() || ctx.TryStartJump() || ctx.TryStartVariedAttack() || ctx.TryStartDodgeCounter() || ctx.TryStartLightAttack(0) || ctx.TryStartCharge())
             {
                 return;

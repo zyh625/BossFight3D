@@ -25,6 +25,23 @@ MonoBehaviour:
   chargePresentationDelay: 0.12
   heavyLeapHeight: 0.85
   variedAttack: {fileID: 11400000, guid: 4460f5dd330dfc045afda2d7adc2fd9c, type: 2}
+  fistCombo:
+  - {fileID: 11400000, guid: e1b12e214576e5d488ca10487ff1d67f, type: 2}
+  - {fileID: 11400000, guid: 98837f1a94c9b8b4a8854659188604ea, type: 2}
+  fistHeavy: {fileID: 11400000, guid: 00246c4e8beaf794b9da33e7e55ed2de, type: 2}
+  fistSeeThroughWindowScale: 1.5
+  fistSeeThroughChip: 0.15
+  dartDamage: 12
+  dartGuardDamage: 6
+  dartSpeed: 32
+  dartRange: 30
+  dartStaminaCost: 6
+  dartChargedMinDamage: 18
+  dartChargedMaxDamage: 34
+  dartChargedGuardDamage: 22
+  dartChargedSpeed: 52
+  throwWindup: 0.08
+  throwRecovery: 0.24
   dodgeCounter: {fileID: 11400000, guid: 49e756e170c86204e9ca5c4df1a7f450, type: 2}
   dodgeCounterWindow: 0.6
   seeThroughWindow: 0.2

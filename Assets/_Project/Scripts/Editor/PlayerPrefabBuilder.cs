@@ -117,9 +117,41 @@ namespace BossFight.EditorTools
                 EditorWiring.SetRef(slowMotion, "gauge", gauge);
                 EditorWiring.SetRef(slowMotion, "health", root.GetComponent<Health>());
 
+                // P1：拳套与飞镖形态
+                Hitbox fistHitbox = BuildFistHitbox(root.transform);
+                Transform fists = BuildFists(root.transform, out Transform leftFist, out Transform rightFist);
+                Transform dartHand = BuildDartHand(root.transform);
+                Transform muzzle = CreateChild(root.transform, "DartMuzzle", new Vector3(0.3f, 1.35f, 0.45f));
+
+                var launcher = root.AddComponent<DartLauncher>();
+                EditorWiring.SetRef(launcher, "dartPrefab", DartPrefabBuilder.Build());
+                EditorWiring.SetRef(launcher, "muzzle", muzzle);
+                EditorWiring.SetRef(launcher, "targeting", root.GetComponent<LockOnTargeting>());
+                EditorWiring.SetRef(launcher, "config", CombatDataBuilder.GetOrCreatePlayerCombatConfig());
+                EditorWiring.Edit(launcher, "aimLayers", layers => layers.intValue =
+                    (1 << LayerSetup.Get(LayerSetup.Environment)) | (1 << LayerSetup.Get(LayerSetup.Hurtbox)));
+
+                EditorWiring.SetRef(player, "fistHitbox", fistHitbox);
+                EditorWiring.SetRef(player, "dartLauncher", launcher);
+
+                var formVisuals = root.AddComponent<WeaponFormVisuals>();
+                EditorWiring.SetRef(formVisuals, "player", player);
+                EditorWiring.SetRef(formVisuals, "sword", weaponHitbox.gameObject);
+                EditorWiring.SetRef(formVisuals, "dart", dartHand.gameObject);
+                EditorWiring.SetRef(formVisuals, "fists", fists.gameObject);
+
+                var punch = root.AddComponent<PlaceholderFistPunch>();
+                EditorWiring.SetRef(punch, "player", player);
+                EditorWiring.SetRef(punch, "hitbox", fistHitbox);
+                EditorWiring.SetRef(punch, "leftFist", leftFist);
+                EditorWiring.SetRef(punch, "rightFist", rightFist);
+
+                SetLayerRecursively(root.transform, LayerSetup.Get(LayerSetup.Player));
+                root.GetComponentInChildren<Hurtbox>(true).gameObject.layer = LayerSetup.Get(LayerSetup.Hurtbox);
+
                 // 表现层（M7）：刀光、命中特效与音效、翻滚残影。阈值 7 m/s 介于奔跑（6.5）和翻滚（7.5）之间
                 Transform swordRoot = weaponHitbox.transform;
-                CombatFeedbackBuilder.AddHitEffects(root, new[] { weaponHitbox });
+                CombatFeedbackBuilder.AddHitEffects(root, new[] { weaponHitbox, fistHitbox });
                 CombatFeedbackBuilder.AddWeaponTrail(root, weaponHitbox,
                     swordRoot.Find("Hitbox_Base"), swordRoot.Find("Hitbox_Tip"), ArenaMaterials.NeonCyan);
                 CombatFeedbackBuilder.AddAfterImages(root, new[] { visualRoot, sockets }, ArenaMaterials.NeonCyan, 7f);
@@ -253,6 +285,52 @@ namespace BossFight.EditorTools
             EditorWiring.Edit(hitbox, "radius", p => p.floatValue = 0.18f);
             EditorWiring.Edit(hitbox, "hurtboxLayers", p => p.intValue = 1 << LayerSetup.Get(LayerSetup.Hurtbox));
             return hitbox;
+        }
+
+        /// <summary>拳套的判定体：身前胸口高度的一段胶囊，不跟随任何骨骼。</summary>
+        private static Hitbox BuildFistHitbox(Transform root)
+        {
+            Transform holder = CreateChild(root, "FistHitbox", Vector3.zero);
+            Transform basePoint = CreateChild(holder, "Hitbox_Base", new Vector3(0f, 1.15f, 0.3f));
+            Transform tipPoint = CreateChild(holder, "Hitbox_Tip", new Vector3(0f, 1.15f, 1.3f));
+
+            var hitbox = holder.gameObject.AddComponent<Hitbox>();
+            EditorWiring.SetRef(hitbox, "basePoint", basePoint);
+            EditorWiring.SetRef(hitbox, "tipPoint", tipPoint);
+            EditorWiring.Edit(hitbox, "radius", p => p.floatValue = 0.34f);
+            EditorWiring.Edit(hitbox, "hurtboxLayers", p => p.intValue = 1 << LayerSetup.Get(LayerSetup.Hurtbox));
+            return hitbox;
+        }
+
+        /// <summary>占位的双拳：两个发光方块。</summary>
+        private static Transform BuildFists(Transform root, out Transform left, out Transform right)
+        {
+            Transform fists = CreateChild(root, "Fists", Vector3.zero);
+            left = BuildFist(fists, "Fist_L", new Vector3(-0.34f, 1.15f, 0.32f));
+            right = BuildFist(fists, "Fist_R", new Vector3(0.34f, 1.15f, 0.32f));
+            fists.gameObject.SetActive(false);
+            return fists;
+        }
+
+        private static Transform BuildFist(Transform parent, string name, Vector3 position)
+        {
+            GameObject fist = EditorWiring.CreateVisualPrimitive(PrimitiveType.Cube, name, parent);
+            fist.transform.localPosition = position;
+            fist.transform.localScale = Vector3.one * 0.2f;
+            fist.GetComponent<Renderer>().sharedMaterial = ArenaMaterials.NeonAccent;
+            return fist.transform;
+        }
+
+        /// <summary>飞镖形态时悬在手边的一支飞镖，提示当前拿的是什么。</summary>
+        private static Transform BuildDartHand(Transform root)
+        {
+            Transform hand = CreateChild(root, "DartHand", new Vector3(0.38f, 1.2f, 0.3f));
+            GameObject dart = EditorWiring.CreateVisualPrimitive(PrimitiveType.Cube, "Dart", hand);
+            dart.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            dart.transform.localScale = new Vector3(0.08f, 0.08f, 0.5f);
+            dart.GetComponent<Renderer>().sharedMaterial = ArenaMaterials.NeonStrip;
+            hand.gameObject.SetActive(false);
+            return hand;
         }
 
         private static PlayerMovementConfig GetOrCreateMovementConfig()

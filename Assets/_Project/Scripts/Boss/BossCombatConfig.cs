@@ -7,6 +7,8 @@ namespace BossFight.Boss
     public sealed class BossCombatConfig : ScriptableObject
     {
         [SerializeField] private AttackData[] combo;
+        [Tooltip("长剑形态的四连击：三快一慢")]
+        [SerializeField] private AttackData[] longswordCombo;
         [SerializeField, Min(0f)] private float attackDistance = 3.2f;
         [SerializeField, Min(0f)] private float chaseSpeed = 3.8f;
         [SerializeField, Min(0f)] private float turnSpeed = 540f;
@@ -22,6 +24,9 @@ namespace BossFight.Boss
 
         public int ComboLength => combo != null ? combo.Length : 0;
         public AttackData GetStrike(int index) => combo[index];
+        public bool HasLongswordCombo => longswordCombo != null && longswordCombo.Length > 0;
+        public int GetComboLength(bool longsword) => longsword && HasLongswordCombo ? longswordCombo.Length : ComboLength;
+        public AttackData GetStrike(int index, bool longsword) => longsword && HasLongswordCombo ? longswordCombo[index] : combo[index];
         public float AttackDistance => attackDistance;
         public float ChaseSpeed => chaseSpeed;
         public float TurnSpeed => turnSpeed;
@@ -41,6 +46,7 @@ namespace BossFight.Boss
                 BossMove.BlinkSlash => skills.blinkSlash.rule,
                 BossMove.SwordWave => skills.swordWave.rule,
                 BossMove.Retreat => skills.retreat.rule,
+                BossMove.Whirlwind => skills.whirlwind.rule,
                 _ => default
             };
         }

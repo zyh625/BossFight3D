@@ -24,6 +24,7 @@ namespace BossFight.Player
         private InputAction charge;
         private InputAction lockOn;
         private InputAction slowMotion;
+        private InputAction switchWeapon;
 
         /// <summary>移动输入，长度 ≤ 1。</summary>
         public Vector2 Move => Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1f);
@@ -44,6 +45,7 @@ namespace BossFight.Player
         public bool ChargePressedThisFrame => charge.WasPressedThisFrame();
         public bool LockOnPressedThisFrame => lockOn.WasPressedThisFrame();
         public bool SlowMotionPressedThisFrame => slowMotion.WasPressedThisFrame();
+        public bool SwitchWeaponPressedThisFrame => switchWeapon.WasPressedThisFrame();
 
         private void Awake()
         {
@@ -59,6 +61,7 @@ namespace BossFight.Player
             charge = map.FindAction("Charge", throwIfNotFound: true);
             lockOn = map.FindAction("LockOn", throwIfNotFound: true);
             slowMotion = map.FindAction("SlowMotion", throwIfNotFound: true);
+            switchWeapon = map.FindAction("SwitchWeapon", throwIfNotFound: true);
         }
 
         private void OnEnable()

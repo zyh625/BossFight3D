@@ -20,6 +20,8 @@ namespace BossFight.Player
         public CharacterVisual Visual;
         public Stamina Stamina;
         public Hitbox WeaponHitbox;
+        public Hitbox FistHitbox;
+        public DartLauncher Darts;
         public PlayerCombatConfig Combat;
         public LocalHitStop HitStop;
         public double ActionTime => HitStop != null ? HitStop.ActionTime : Time.timeAsDouble;
@@ -32,6 +34,38 @@ namespace BossFight.Player
         public PlayerChargeState Charge;
         public PlayerRollState Roll;
         public PlayerJumpState Jump;
+        public PlayerThrowState Throw;
+
+        /// <summary>当前的武器形态。</summary>
+        public WeaponForm Form { get; private set; }
+
+        public event System.Action<WeaponForm> FormChanged;
+
+        /// <summary>当前形态用来打人的判定体。飞镖形态没有近战判定，返回剑的（不会被开启）。</summary>
+        public Hitbox ActiveHitbox => Form == WeaponForm.Fist && FistHitbox != null ? FistHitbox : WeaponHitbox;
+
+        /// <summary>当前形态的蓄力招式数据（飞镖形态的蓄力是投掷，不走攻击数据）。</summary>
+        public AttackData ChargedAttack => Form == WeaponForm.Fist && Combat.FistHeavy != null ? Combat.FistHeavy : Combat.HeavyAttack;
+
+        /// <summary>识破窗口：拳套更宽。</summary>
+        public float SeeThroughWindow =>
+            Combat.SeeThroughWindow * (Form == WeaponForm.Fist ? Combat.FistSeeThroughWindowScale : 1f);
+
+        /// <summary>按 F：切换到下一种形态。只在自由移动时允许，所以不会在出招中途换武器。</summary>
+        public void CycleForm()
+        {
+            Form = (WeaponForm)(((int)Form + 1) % 3);
+            // 没有配置对应内容的形态直接跳过
+            if ((Form == WeaponForm.Dart && Darts == null)
+                || (Form == WeaponForm.Fist && (FistHitbox == null || Combat.FistComboLength == 0)))
+            {
+                CycleForm();
+                return;
+            }
+
+            ChargeHoldConsumed = Input.ChargeHeld;
+            FormChanged?.Invoke(Form);
+        }
 
         // 切手技或耗尽体力的重击消耗掉当前这次右键长按。
         public bool ChargeHoldConsumed { get; set; }
@@ -50,12 +84,25 @@ namespace BossFight.Player
         /// </summary>
         public bool TryStartLightAttack(int comboIndex)
         {
-            if (comboIndex >= Combat.LightComboLength || !Buffer.TryConsume(PlayerCommand.LightAttack))
+            if (Form == WeaponForm.Dart)
+            {
+                return TryStartThrow();
+            }
+
+            bool fist = Form == WeaponForm.Fist;
+            int length = fist ? Combat.FistComboLength : Combat.LightComboLength;
+            if (fist && length > 0)
+            {
+                // 拳套的连打没有终结技：左、右、左、右……一直循环
+                comboIndex %= length;
+            }
+
+            if (comboIndex >= length || !Buffer.TryConsume(PlayerCommand.LightAttack))
             {
                 return false;
             }
 
-            AttackData data = Combat.GetLight(comboIndex);
+            AttackData data = fist ? Combat.GetFist(comboIndex) : Combat.GetLight(comboIndex);
             if (!Stamina.TrySpend(data.StaminaCost, out float spent))
             {
                 return false;
@@ -66,9 +113,23 @@ namespace BossFight.Player
             return true;
         }
 
+        /// <summary>飞镖形态的左键：投出一支普通飞镖。</summary>
+        private bool TryStartThrow()
+        {
+            if (!Buffer.TryConsume(PlayerCommand.LightAttack) || !Stamina.TrySpend(Combat.DartStaminaCost))
+            {
+                return false;
+            }
+
+            Throw.Setup(0f);
+            Machine.ChangeState(Throw);
+            return true;
+        }
+
         public bool TryStartVariedAttack(float staminaCredit = 0f)
         {
-            if (!Buffer.TryConsume(PlayerCommand.VariedAttack) || Combat.VariedAttack == null)
+            // 切手技是近战招式，飞镖形态没有；按键照样被消耗，避免它留在缓冲里
+            if (!Buffer.TryConsume(PlayerCommand.VariedAttack) || Combat.VariedAttack == null || Form == WeaponForm.Dart)
             {
                 return false;
             }
@@ -111,7 +172,7 @@ namespace BossFight.Player
         /// </summary>
         public bool TryStartDodgeCounter()
         {
-            if (Combat.DodgeCounter == null || ActionTime > dodgeCounterUntil
+            if (Combat.DodgeCounter == null || Form == WeaponForm.Dart || ActionTime > dodgeCounterUntil
                 || !Buffer.TryConsume(PlayerCommand.LightAttack))
             {
                 return false;

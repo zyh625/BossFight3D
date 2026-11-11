@@ -33,6 +33,7 @@ namespace BossFight.Game
         public BossController Boss => boss;
         public LockOnTargeting Targeting => targeting;
         public float ChargeRatio => player.VisibleChargeRatio;
+        public WeaponForm PlayerForm => player.Form;
         public bool IsBossFight => boss.isActiveAndEnabled;
         public FightResult Result { get; private set; }
         public bool ResultReady => Result != FightResult.Ongoing && (finisher == null || !finisher.IsPlaying);
@@ -74,6 +75,10 @@ namespace BossFight.Game
             }
 
             Result = PlayerHealth.IsDead ? FightResult.Defeat : FightResult.Victory;
+            if (player.TryGetComponent(out DartLauncher darts))
+            {
+                darts.RecallAll();
+            }
             player.enabled = false;
             targeting.enabled = false;
             PlayerStamina.RegenMode = StaminaRegenMode.None;

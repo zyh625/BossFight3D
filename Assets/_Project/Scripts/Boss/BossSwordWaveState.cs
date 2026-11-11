@@ -40,7 +40,7 @@ namespace BossFight.Boss
             {
                 fired = true;
                 boss.Weapons.Swing(1, 0.5f);
-                boss.SkillVisuals.LaunchWave(boss, settings);
+                boss.SkillVisuals.LaunchWave(boss, settings, boss.SkillScale);
             }
             if (elapsed >= settings.windup + settings.recovery)
             {

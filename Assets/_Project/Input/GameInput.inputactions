@@ -13,7 +13,8 @@
                 { "name": "Charge", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f07", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "LockOn", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f08", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "Jump", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f09", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
-                { "name": "SlowMotion", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f0a", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false }
+                { "name": "SlowMotion", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f0a", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "SwitchWeapon", "type": "Button", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f0b", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false }
             ],
             "bindings": [
                 { "name": "WASD", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f10", "path": "2DVector", "interactions": "", "processors": "", "groups": "", "action": "Move", "isComposite": true, "isPartOfComposite": false },
@@ -28,7 +29,8 @@
                 { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f19", "path": "<Mouse>/rightButton", "interactions": "", "processors": "", "groups": "", "action": "Charge", "isComposite": false, "isPartOfComposite": false },
                 { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f1a", "path": "<Mouse>/middleButton", "interactions": "", "processors": "", "groups": "", "action": "LockOn", "isComposite": false, "isPartOfComposite": false },
                 { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f1b", "path": "<Keyboard>/c", "interactions": "", "processors": "", "groups": "", "action": "Jump", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f1c", "path": "<Keyboard>/r", "interactions": "", "processors": "", "groups": "", "action": "SlowMotion", "isComposite": false, "isPartOfComposite": false }
+                { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f1c", "path": "<Keyboard>/r", "interactions": "", "processors": "", "groups": "", "action": "SlowMotion", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "5f0c1a9e-3b7d-4e21-9a10-0b1c2d3e4f1d", "path": "<Keyboard>/f", "interactions": "", "processors": "", "groups": "", "action": "SwitchWeapon", "isComposite": false, "isPartOfComposite": false }
             ]
         }
     ],

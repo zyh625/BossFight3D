@@ -63,7 +63,7 @@ namespace BossFight.Boss
             }
             if (elapsed >= activeEnd + strike.Recovery)
             {
-                if (Index + 1 < boss.Config.ComboLength)
+                if (Index + 1 < boss.ComboLength)
                 {
                     StartStrike(Index + 1);
                 }
@@ -82,8 +82,8 @@ namespace BossFight.Boss
         private void StartStrike(int index)
         {
             Index = index;
-            strike = boss.Config.GetStrike(index);
-            windup = strike.Windup * (boss.IsPhaseTwo && index < 2 ? boss.Config.Skills.phase.quickStrikeWindupScale : 1f);
+            strike = boss.GetStrike(index);
+            windup = strike.Windup * (boss.IsPhaseTwo && !boss.IsLongsword && index < 2 ? boss.Config.Skills.phase.quickStrikeWindupScale : 1f);
             elapsed = 0f;
             opened = false;
             sampledEnd = false;

@@ -42,18 +42,30 @@ namespace BossFight.Tests
             mouse = InputSystem.AddDevice<Mouse>();
             keyboard = InputSystem.AddDevice<Keyboard>();
 
-            yield return SceneManager.LoadSceneAsync("Arena", LoadSceneMode.Single);
+            void DisableBossBeforeFirstMove(Scene scene, LoadSceneMode mode)
+            {
+                boss = Object.FindAnyObjectByType<BossController>();
+                if (boss != null)
+                {
+                    boss.gameObject.SetActive(false);
+                }
+            }
+
+            SceneManager.sceneLoaded += DisableBossBeforeFirstMove;
+            try
+            {
+                yield return SceneManager.LoadSceneAsync("Arena", LoadSceneMode.Single);
+            }
+            finally
+            {
+                SceneManager.sceneLoaded -= DisableBossBeforeFirstMove;
+            }
             yield return null;
 
             player = Object.FindAnyObjectByType<PlayerController>();
             stamina = player.GetComponent<Stamina>();
             stamina.CostMultiplier = 1f; // 用例按设计数值断言，不受调试用的体力倍率影响
             playerReceiver = player.GetComponent<DamageReceiver>();
-            boss = Object.FindAnyObjectByType<BossController>();
-            if (boss != null)
-            {
-                boss.gameObject.SetActive(false);
-            }
             var dummy = Object.FindAnyObjectByType<TrainingDummy>(FindObjectsInactive.Include);
             dummy.enabled = false; // 用例精确控制来袭时刻，独立于场景的陪练开关。
             dummy.gameObject.SetActive(true);
@@ -124,7 +136,7 @@ namespace BossFight.Tests
             Assert.AreEqual(dummyHealth.Max, dummyHealth.Current, "松手前不能命中木桩");
             Assert.Less(stamina.Current, stamina.Max - 35f, "满蓄力后仍然持续耗体力");
             Assert.Greater(player.VisibleChargeRatio, 0f);
-            Transform grip = player.GetComponentInChildren<Hitbox>().transform.parent;
+            Transform grip = SwordHitbox().transform.parent;
             Assert.Less(grip.localPosition.z, 0f, "蓄力时剑应在身体后方");
 
             float beforeRelease = stamina.Current;
@@ -255,7 +267,7 @@ namespace BossFight.Tests
         [UnityTest]
         public IEnumerator QuickRightThenLeft_PerformsAnOverheadChopWithoutCharge()
         {
-            Hitbox weapon = player.GetComponentInChildren<Hitbox>();
+            Hitbox weapon = SwordHitbox();
             float startingBladeY = 0f;
             weapon.Activated += _ => startingBladeY = weapon.transform.forward.y;
             input.Press(mouse.rightButton);
@@ -571,6 +583,145 @@ namespace BossFight.Tests
             yield return Click();
 
             Assert.AreEqual(PlayerAttackKind.Light, player.ActiveAttack, "没有完美闪避就没有闪避反击");
+        }
+
+        // ---- P1：武器形态 ----
+
+        [UnityTest]
+        public IEnumerator F_CyclesSwordDartFist()
+        {
+            Assert.AreEqual(WeaponForm.Sword, player.Form);
+            yield return Tap(keyboard.fKey);
+            yield return null;
+            Assert.AreEqual(WeaponForm.Dart, player.Form);
+            yield return Tap(keyboard.fKey);
+            yield return null;
+            Assert.AreEqual(WeaponForm.Fist, player.Form);
+            yield return Tap(keyboard.fKey);
+            yield return null;
+            Assert.AreEqual(WeaponForm.Sword, player.Form);
+        }
+
+        [UnityTest]
+        public IEnumerator Dart_LeftClickThrows_AndChargedDartHitsHarder()
+        {
+            player.GetComponent<CharacterMotor>().Teleport(new Vector3(0f, 0f, -5f));
+            yield return Tap(keyboard.fKey);
+            yield return null;
+
+            // 锁定木桩，飞镖自动瞄准它
+            input.Press(mouse.middleButton);
+            yield return null;
+            input.Release(mouse.middleButton);
+            yield return null;
+
+            yield return Click();
+            Assert.AreEqual("PlayerThrowState", player.CurrentStateName);
+            yield return new WaitForSeconds(0.6f);
+            Assert.AreEqual(dummyHealth.Max - 12f, dummyHealth.Current, 0.01f, "普通飞镖伤害 12");
+            Assert.AreEqual(stamina.Max - 6f, stamina.Current, 6f, "投掷只消耗少量体力");
+
+            float before = dummyHealth.Current;
+            input.Press(mouse.rightButton);
+            yield return new WaitForSeconds(1.3f);
+            input.Release(mouse.rightButton);
+            yield return new WaitForSeconds(0.7f);
+            Assert.AreEqual(before - 34f, dummyHealth.Current, 0.01f, "满蓄力飞镖伤害 34");
+        }
+
+        [UnityTest]
+        public IEnumerator Dart_LeftClickDuringCharge_DoesNotCancelChargedThrow()
+        {
+            player.GetComponent<CharacterMotor>().Teleport(new Vector3(0f, 0f, -5f));
+            yield return Tap(keyboard.fKey);
+            yield return null;
+
+            input.Press(mouse.middleButton);
+            yield return null;
+            input.Release(mouse.middleButton);
+            yield return null;
+
+            input.Press(mouse.rightButton);
+            yield return new WaitForSeconds(0.35f);
+            Assert.AreEqual("PlayerChargeState", player.CurrentStateName);
+
+            yield return Click();
+            yield return null;
+            Assert.AreEqual("PlayerChargeState", player.CurrentStateName);
+            Assert.AreEqual(dummyHealth.Max, dummyHealth.Current);
+
+            input.Release(mouse.rightButton);
+            yield return new WaitForSeconds(0.6f);
+            Assert.GreaterOrEqual(dummyHealth.Max - dummyHealth.Current, 18f);
+            Assert.LessOrEqual(dummyHealth.Max - dummyHealth.Current, 34f);
+        }
+
+        [UnityTest]
+        public IEnumerator Fist_PunchesLoop_AndChargedPunchDashesForward()
+        {
+            yield return Tap(keyboard.fKey);
+            yield return null;
+            yield return Tap(keyboard.fKey);
+            yield return null;
+            Assert.AreEqual(WeaponForm.Fist, player.Form);
+
+            // 连点四下：左右左右，没有终结技，伤害 9 + 10 + 9 + 10
+            for (int i = 0; i < 4; i++)
+            {
+                yield return Click();
+                yield return new WaitForSeconds(0.22f);
+            }
+            yield return new WaitForSeconds(0.5f);
+            Assert.AreEqual(dummyHealth.Max - 38f, dummyHealth.Current, 0.01f, "拳套连打应循环");
+
+            // 退到 6 米外蓄力冲拳：瞬移 5 米后命中
+            var motor = player.GetComponent<CharacterMotor>();
+            motor.Teleport(new Vector3(0f, 0f, -6f));
+            yield return null;
+            float before = dummyHealth.Current;
+            input.Press(mouse.rightButton);
+            yield return new WaitForSeconds(1.3f);
+            input.Release(mouse.rightButton);
+            yield return new WaitForSeconds(0.8f);
+
+            Assert.Greater(player.transform.position.z, -2.5f, "蓄力冲拳应向前瞬移");
+            Assert.AreEqual(before - 38f * 1.55f, dummyHealth.Current, 0.5f, "满蓄力冲拳伤害 38 × 1.55");
+        }
+
+        [UnityTest]
+        public IEnumerator Fist_SeeThroughStillTakesChipDamage()
+        {
+            yield return Tap(keyboard.fKey);
+            yield return null;
+            yield return Tap(keyboard.fKey);
+            yield return null;
+
+            input.Press(mouse.rightButton);
+            yield return new WaitForSeconds(0.3f);
+            input.Release(mouse.rightButton);
+            yield return null;
+            yield return null;
+            Assert.AreEqual(PlayerAttackKind.ChargedHeavy, player.ActiveAttack);
+
+            float healthBefore = playerReceiver.Health.Current;
+            DamageResult result = HitPlayer();
+            Assert.AreEqual(HitOutcome.Parried, result.Outcome, "拳套同样可以识破");
+            Assert.AreEqual(12f * 0.15f, healthBefore - playerReceiver.Health.Current, 0.01f, "但要承受 15% 的伤害");
+            Assert.AreEqual("PlayerAttackState", player.CurrentStateName, "识破后不进入受击硬直");
+        }
+
+        // 玩家身上有剑和拳套两个判定体，按名字取剑的那个
+        private Hitbox SwordHitbox()
+        {
+            foreach (Hitbox hitbox in player.GetComponentsInChildren<Hitbox>(true))
+            {
+                if (hitbox.name == "Weapon_Sword")
+                {
+                    return hitbox;
+                }
+            }
+
+            throw new System.InvalidOperationException("找不到剑的 Hitbox");
         }
 
         private DamageResult HitPlayer()

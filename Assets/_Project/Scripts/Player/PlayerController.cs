@@ -20,6 +20,9 @@ namespace BossFight.Player
         [SerializeField] private CharacterVisual visual;
         [SerializeField] private Stamina stamina;
         [SerializeField] private Hitbox weaponHitbox;
+        [Tooltip("拳套形态的判定体（身前的一段胶囊）")]
+        [SerializeField] private Hitbox fistHitbox;
+        [SerializeField] private DartLauncher dartLauncher;
 
         [Header("数据")]
         [SerializeField] private PlayerCombatConfig combatConfig;
@@ -36,6 +39,12 @@ namespace BossFight.Player
         int IDamageModifier.Order => 100;
 
         public Transform CameraTarget => cameraTarget;
+
+        /// <summary>当前的武器形态。</summary>
+        public WeaponForm Form => context != null ? context.Form : WeaponForm.Sword;
+
+        /// <summary>武器形态切换后触发。武器外观和 HUD 订阅它。</summary>
+        public event System.Action<WeaponForm> FormChanged;
 
         /// <summary>当前状态的名字，调试显示用。</summary>
         public string CurrentStateName => machine.Current != null ? machine.Current.GetType().Name : "-";
@@ -65,6 +74,8 @@ namespace BossFight.Player
                 Visual = visual,
                 Stamina = stamina,
                 WeaponHitbox = weaponHitbox,
+                FistHitbox = fistHitbox,
+                Darts = dartLauncher,
                 Combat = combatConfig,
                 HitStop = GetComponent<LocalHitStop>(),
                 Buffer = buffer,
@@ -76,6 +87,8 @@ namespace BossFight.Player
             context.Charge = new PlayerChargeState(context);
             context.Roll = new PlayerRollState(context);
             context.Jump = new PlayerJumpState(context);
+            context.Throw = new PlayerThrowState(context);
+            context.FormChanged += form => FormChanged?.Invoke(form);
             hitState = new PlayerHitState(context);
         }
 
@@ -86,7 +99,7 @@ namespace BossFight.Player
 
         /// <summary>
         /// 左键按下的那一帧就产生指令（不等松开），所以轻攻击没有输入延迟。
-        /// 同一个左键，按住右键时是切手技，否则是轻攻击。
+        /// 近战时按住右键再按左键是切手技。飞镖形态下右键蓄力优先。
         /// </summary>
         private void ReadAttackInput()
         {
@@ -98,12 +111,13 @@ namespace BossFight.Player
             {
                 context.Buffer.Push(PlayerCommand.Jump);
             }
-            else if ((input.AttackPressedThisFrame && input.ChargeHeld) || (input.ChargePressedThisFrame && input.AttackHeld))
+            else if (Form != WeaponForm.Dart
+                && ((input.AttackPressedThisFrame && input.ChargeHeld) || (input.ChargePressedThisFrame && input.AttackHeld)))
             {
                 context.ChargeHoldConsumed = true;
                 context.Buffer.Push(PlayerCommand.VariedAttack);
             }
-            else if (input.AttackPressedThisFrame)
+            else if (input.AttackPressedThisFrame && (Form != WeaponForm.Dart || !input.ChargeHeld))
             {
                 context.Buffer.Push(PlayerCommand.LightAttack);
             }
@@ -147,7 +161,15 @@ namespace BossFight.Player
             else if (machine.Current == context.Attack && context.Attack.TrySeeThrough())
             {
                 damage.Outcome = HitOutcome.Parried;
-                damage.Cancelled = true;
+                if (context.Form == WeaponForm.Fist && combatConfig.FistSeeThroughChip > 0f)
+                {
+                    // 拳套的识破：攻击被化解、反击照常打出，但仍要承受一小部分伤害
+                    damage.Damage *= combatConfig.FistSeeThroughChip;
+                }
+                else
+                {
+                    damage.Cancelled = true;
+                }
             }
         }
 
@@ -162,6 +184,10 @@ namespace BossFight.Player
             health.Died -= OnDied;
             damageReceiver.Damaged -= OnDamaged;
             weaponHitbox.End();
+            if (fistHitbox != null)
+            {
+                fistHitbox.End();
+            }
         }
 
         private void OnDied()
@@ -171,7 +197,8 @@ namespace BossFight.Player
 
         private void OnDamaged(DamageResult result)
         {
-            if (result.FinalDamage > 0f && !result.Killed)
+            // 识破成功（哪怕拳套吃了一点伤害）不进入受击硬直，否则反击会被自己打断
+            if (result.FinalDamage > 0f && !result.Killed && result.Outcome != HitOutcome.Parried)
             {
                 context.Buffer.Clear();
                 context.ChargeHoldConsumed = input.ChargeHeld;

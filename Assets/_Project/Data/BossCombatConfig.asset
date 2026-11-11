@@ -16,6 +16,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 607a350b0b689294eb1b2f645a684207, type: 2}
   - {fileID: 11400000, guid: 2b387765adcbf06488bbf38410a83453, type: 2}
   - {fileID: 11400000, guid: 796c96ca25848cf458e00f4ae4267fd9, type: 2}
+  longswordCombo:
+  - {fileID: 11400000, guid: c6e53f837f4c3e54a84e5204ed3d1aa9, type: 2}
+  - {fileID: 11400000, guid: 5067ea172c9ad754697a77f19e7f62e2, type: 2}
+  - {fileID: 11400000, guid: b8e63d9d3fcc45e4981016b443030357, type: 2}
+  - {fileID: 11400000, guid: 25afa403cd2ec5f459c56e70c8404814, type: 2}
   attackDistance: 3.2
   chaseSpeed: 3.8
   turnSpeed: 540
@@ -75,3 +80,34 @@ MonoBehaviour:
       knockbackDuration: 0.22
       cooldownScale: 0.65
       quickStrikeWindupScale: 0.85
+    whirlwind:
+      rule:
+        minDistance: 4.2
+        maxDistance: 5.8
+        cooldown: 9
+        weight: 1
+      windup: 0.6
+      duration: 2.2
+      moveSpeed: 4.6
+      spinSpeed: 900
+      hitInterval: 0.4
+      damage: 10
+      recovery: 1
+    lunge:
+      chance: 0.45
+      phaseTwoChance: 0.7
+      windup: 0.32
+      speed: 24
+      maxDistance: 9
+      stopDistance: 2.2
+      damage: 20
+      recovery: 0.7
+    longsword:
+      enabled: 1
+      minDistance: 6
+      transformTime: 0.9
+      duration: 16
+      cooldown: 10
+      attackDistance: 4.6
+      reachScale: 1.45
+      skillScale: 1.35

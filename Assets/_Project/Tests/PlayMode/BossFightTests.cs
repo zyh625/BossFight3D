@@ -22,6 +22,8 @@ namespace BossFight.Tests
         private BossMoveRule blinkRule;
         private BossMoveRule waveRule;
         private BossMoveRule retreatRule;
+        private BossMoveRule whirlwindRule;
+        private bool longswordEnabled;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -52,6 +54,8 @@ namespace BossFight.Tests
                 skills.blinkSlash.rule = blinkRule;
                 skills.swordWave.rule = waveRule;
                 skills.retreat.rule = retreatRule;
+                skills.whirlwind.rule = whirlwindRule;
+                skills.longsword.enabled = longswordEnabled;
             }
         }
 
@@ -64,6 +68,10 @@ namespace BossFight.Tests
             skills.blinkSlash.rule.weight = 0f;
             skills.swordWave.rule.weight = 0f;
             skills.retreat.rule.weight = 0f;
+            whirlwindRule = skills.whirlwind.rule;
+            longswordEnabled = skills.longsword.enabled;
+            skills.whirlwind.rule.weight = 0f;
+            skills.longsword.enabled = false;
         }
 
         [UnityTest]

@@ -35,6 +35,8 @@ namespace BossFight.Player.States
         private float lungeSpeed;
         private float lungeRemaining;
         private Transform counterTarget;
+        private Hitbox hitbox;
+        private float seeThroughWindow;
         private bool isDodgeCounter;
 
         public PlayerAttackKind Kind { get; private set; }
@@ -73,14 +75,19 @@ namespace BossFight.Player.States
             hitboxOpened = false;
             // 闪避反击是闪避的奖励，不是识破的出手，所以它不能再触发识破
             canSeeThrough = comboIndex < 0 && !isDodgeCounter;
-            windup = canSeeThrough ? Mathf.Max(data.Windup, ctx.Combat.SeeThroughWindow) : data.Windup;
+            // 判定体和识破窗口在出手时按当前武器形态确定，之后这一招全程使用同一份
+            hitbox = ctx.ActiveHitbox;
+            seeThroughWindow = ctx.SeeThroughWindow;
+            windup = canSeeThrough ? Mathf.Max(data.Windup, seeThroughWindow) : data.Windup;
             guardDamage = data.GuardDamage;
-            bool heavy = data == ctx.Combat.HeavyAttack;
+            bool swordHeavy = data == ctx.Combat.HeavyAttack;
+            bool heavy = swordHeavy || data == ctx.Combat.FistHeavy;
             Kind = isDodgeCounter ? PlayerAttackKind.DodgeCounter
                 : heavy ? PlayerAttackKind.ChargedHeavy
                 : comboIndex >= 0 ? PlayerAttackKind.Light : PlayerAttackKind.Combination;
             impact = heavy ? AttackImpact.ChargedHeavy : AttackImpact.Normal;
-            if (heavy)
+            // 只有剑的重击会跃起；拳套的蓄力冲拳是贴地向前瞬移
+            if (swordHeavy)
             {
                 ctx.Motor.TryJump(ctx.Combat.HeavyLeapHeight);
             }
@@ -118,7 +125,7 @@ namespace BossFight.Player.States
 
         public bool TrySeeThrough()
         {
-            if (!canSeeThrough || hitboxOpened || ctx.ActionTime - startedAt >= ctx.Combat.SeeThroughWindow)
+            if (!canSeeThrough || hitboxOpened || ctx.ActionTime - startedAt >= seeThroughWindow)
             {
                 return false;
             }
@@ -181,13 +188,13 @@ namespace BossFight.Player.States
             if (!hitboxOpened && elapsed >= windup)
             {
                 hitboxOpened = true;
-                ctx.WeaponHitbox.Begin(ctx.GameObject, data.Damage * damageMultiplier, guardDamage, data.Active, impact);
+                hitbox.Begin(ctx.GameObject, data.Damage * damageMultiplier, guardDamage, data.Active, impact);
                 return;
             }
 
             if (elapsed >= activeEnd)
             {
-                ctx.WeaponHitbox.End();
+                hitbox.End();
             }
 
             float skippedWindup = data.Windup - windup;
@@ -210,7 +217,7 @@ namespace BossFight.Player.States
 
         public void Exit()
         {
-            ctx.WeaponHitbox.End();
+            hitbox.End();
             isDodgeCounter = false;
         }
     }

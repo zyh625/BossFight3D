@@ -72,8 +72,17 @@ namespace BossFight.Player.States
         private void ReleaseHeavy()
         {
             ctx.ChargeHoldConsumed = ctx.Input.ChargeHeld;
+
+            // 飞镖形态：蓄力的结果是一支更快、更痛的飞镖
+            if (ctx.Form == WeaponForm.Dart)
+            {
+                ctx.Throw.Setup(Mathf.Max(ChargeRatio, 0.01f));
+                ctx.Machine.ChangeState(ctx.Throw);
+                return;
+            }
+
             float multiplier = Mathf.Lerp(1f, ctx.Combat.FullChargeDamageMultiplier, ChargeRatio);
-            ctx.Attack.Setup(ctx.Combat.HeavyAttack, -1, multiplier, staminaSpent);
+            ctx.Attack.Setup(ctx.ChargedAttack, -1, multiplier, staminaSpent);
             ctx.Machine.ChangeState(ctx.Attack);
         }
 

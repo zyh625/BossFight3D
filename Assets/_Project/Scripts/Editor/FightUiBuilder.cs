@@ -60,7 +60,7 @@ namespace BossFight.EditorTools
             Text status = Label("Boss Action", boss, "", 15, 18f, -104f, 534f, 22f, TextAnchor.MiddleCenter, SecondaryText);
 
             RectTransform player = Panel("Player Status", content, Vector2.zero, new Vector2(24f, 24f), new Vector2(324f, 144f));
-            Label("Player Name", player, "玩家", 21, 16f, -10f, 100f, 26f);
+            Text weapon = Label("Player Weapon", player, "剑 · F 切换", 17, 16f, -10f, 118f, 26f);
             Text freeStamina = Label("Free Stamina", player, "", 15, 135f, -10f, 173f, 26f, TextAnchor.MiddleRight, Accent);
             BarView playerHealth = Bar("Player Health", player, "生命", 16f, -40f, 292f, HealthColor);
             BarView playerStamina = Bar("Player Stamina", player, "体力", 16f, -71f, 292f, Accent);
@@ -73,6 +73,12 @@ namespace BossFight.EditorTools
             marker.localRotation = Quaternion.Euler(0f, 0f, 45f);
             Paint(marker, PrimaryText);
             marker.gameObject.SetActive(false);
+
+            // 飞镖形态的准星：屏幕正中的一个小菱形
+            RectTransform crosshair = Place("Crosshair", content, Center, Vector2.zero, new Vector2(8f, 8f));
+            crosshair.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            Paint(crosshair, Accent);
+            crosshair.gameObject.SetActive(false);
 
             var hud = root.AddComponent<FightHud>();
             EditorWiring.SetRef(hud, "fight", director);
@@ -87,6 +93,8 @@ namespace BossFight.EditorTools
             EditorWiring.SetRef(hud, "status", status);
             EditorWiring.SetRef(hud, "freeStamina", freeStamina);
             EditorWiring.SetRef(hud, "lockMarker", marker);
+            EditorWiring.SetRef(hud, "weapon", weapon);
+            EditorWiring.SetRef(hud, "crosshair", crosshair.gameObject);
         }
 
         private static void BuildResult(GameObject root, FightDirector director)

@@ -36,7 +36,15 @@ namespace BossFight.Boss
             }
             if (elapsed >= settings.duration + settings.recovery)
             {
-                boss.ToApproach();
+                // 收招之后有一定概率直接接突进，让后撤也可能是进攻的起手
+                if (boss.Brain.ShouldLungeAfterRetreat(boss.IsPhaseTwo))
+                {
+                    boss.ToMove(BossMove.Lunge);
+                }
+                else
+                {
+                    boss.ToApproach();
+                }
             }
         }
 

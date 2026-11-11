@@ -17,6 +17,7 @@ namespace BossFight.EditorTools
         public const string Materials = Root + "/Art/Materials";
         public const string PlayerPrefab = Root + "/Prefabs/Player.prefab";
         public const string DummyPrefab = Root + "/Prefabs/TrainingDummy.prefab";
+        public const string DartPrefab = Root + "/Prefabs/EnergyDart.prefab";
         public const string BossPrefab = Root + "/Prefabs/ShadowSwordsman.prefab";
         public const string ArenaScene = Root + "/Scenes/Arena.unity";
         public const string ArenaVolumeProfile = Root + "/Settings/ArenaVolumeProfile.asset";

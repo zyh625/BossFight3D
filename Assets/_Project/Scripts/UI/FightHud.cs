@@ -1,5 +1,6 @@
 using BossFight.Boss;
 using BossFight.Game;
+using BossFight.Player;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,6 +21,10 @@ namespace BossFight.UI
         [SerializeField] private Text status;
         [SerializeField] private Text freeStamina;
         [SerializeField] private RectTransform lockMarker;
+        [Tooltip("显示当前武器形态的文字")]
+        [SerializeField] private Text weapon;
+        [Tooltip("飞镖形态下屏幕中心的准星")]
+        [SerializeField] private GameObject crosshair;
 
         private RectTransform canvas;
         private Camera view;
@@ -54,7 +59,7 @@ namespace BossFight.UI
             bossHealth.SetValue(fight.BossHealth.Current, fight.BossHealth.Max);
             BossController boss = fight.Boss;
             bossGuard.SetValue(boss.Guard.Current, boss.Guard.Max);
-            phase.text = boss.IsPhaseTwo ? "阶段 II" : "阶段 I";
+            phase.text = boss.IsLongsword ? "阶段 II · 长剑" : boss.IsPhaseTwo ? "阶段 II" : "阶段 I";
             status.text = StatusLabel(boss);
             freeStamina.text = stamina.HasFreeSpending ? $"免体力  {stamina.FreeSpendingRemaining:0.0}s" : "";
 
@@ -65,6 +70,26 @@ namespace BossFight.UI
                 charge.SetValue(chargeRatio * 100f, 100f);
             }
             UpdateLockMarker();
+
+            WeaponForm form = fight.PlayerForm;
+            if (weapon != null)
+            {
+                weapon.text = form switch
+                {
+                    WeaponForm.Dart => "飞镖 · F 切换",
+                    WeaponForm.Fist => "拳套 · F 切换",
+                    _ => "剑 · F 切换"
+                };
+            }
+            if (crosshair != null)
+            {
+                // 锁定目标时飞镖自动瞄准，不需要准星
+                bool show = form == WeaponForm.Dart && fight.Targeting.Target == null;
+                if (crosshair.activeSelf != show)
+                {
+                    crosshair.SetActive(show);
+                }
+            }
         }
 
         private void UpdateLockMarker()
@@ -89,12 +114,15 @@ namespace BossFight.UI
                 BossStatus.Staggered => "出招被打断",
                 BossStatus.Retreat => "后撤瞬身",
                 BossStatus.PhaseTransition => $"转阶段保护  {boss.PhaseTransitionRemaining:0.00}s",
-                BossStatus.Combo => MoveLabel($"三连斩 {boss.StrikeNumber}/{boss.ComboLength}", boss.WindupRemaining, boss.IsStriking),
+                BossStatus.Combo => MoveLabel($"{(boss.IsLongsword ? "长剑连斩" : "三连斩")} {boss.StrikeNumber}/{boss.ComboLength}", boss.WindupRemaining, boss.IsStriking),
                 BossStatus.BlinkSlash => MoveLabel("瞬身斩", boss.WindupRemaining),
                 BossStatus.SwordWave => MoveLabel("剑气", boss.WindupRemaining),
+                BossStatus.Whirlwind => MoveLabel("旋风斩 · 会反弹飞镖", boss.WindupRemaining),
+                BossStatus.Lunge => MoveLabel("突进斩", boss.WindupRemaining),
+                BossStatus.Transform => "合剑",
                 BossStatus.Dead => "暗影剑客已击败",
                 BossStatus.FightOver => "玩家倒下",
-                _ => boss.CanGuard ? "追击 / 格挡" : "虚弱"
+                _ => boss.IsLongsword ? "长剑形态 · 不格挡、不会被打断" : boss.CanGuard ? "追击 / 格挡" : "虚弱"
             };
         }
 

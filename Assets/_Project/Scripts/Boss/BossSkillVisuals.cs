@@ -60,7 +60,7 @@ namespace BossFight.Boss
             return Physics.Linecast(from, to, environmentLayers, QueryTriggerInteraction.Ignore);
         }
 
-        internal void LaunchWave(BossController boss, BossSkillSettings.SwordWaveSettings settings)
+        internal void LaunchWave(BossController boss, BossSkillSettings.SwordWaveSettings settings, float widthScale = 1f)
         {
             var waveObject = new GameObject("SwordWave");
             waveObject.transform.SetPositionAndRotation(boss.transform.position + Vector3.up * 0.4f, boss.transform.rotation);
@@ -70,10 +70,10 @@ namespace BossFight.Boss
             blade.useWorldSpace = false;
             blade.widthMultiplier = 0.2f;
             blade.positionCount = 3;
-            blade.SetPosition(0, new Vector3(-settings.width * 0.5f, 0f, -0.3f));
+            blade.SetPosition(0, new Vector3(-settings.width * widthScale * 0.5f, 0f, -0.3f));
             blade.SetPosition(1, new Vector3(0f, 0f, 0.12f));
-            blade.SetPosition(2, new Vector3(settings.width * 0.5f, 0f, -0.3f));
-            waveObject.AddComponent<BossSwordWave>().Initialize(boss, settings, environmentLayers, hurtboxLayers);
+            blade.SetPosition(2, new Vector3(settings.width * widthScale * 0.5f, 0f, -0.3f));
+            waveObject.AddComponent<BossSwordWave>().Initialize(boss, settings, environmentLayers, hurtboxLayers, widthScale);
         }
 
         internal void DamageTarget(BossController boss, float damage, Vector3 point, Vector3 direction)

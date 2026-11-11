@@ -9,7 +9,11 @@ namespace BossFight.Boss
         Combo,
         BlinkSlash,
         SwordWave,
-        Retreat
+        Retreat,
+        /// <summary>旋风斩：旋转着追向玩家，反弹飞镖。</summary>
+        Whirlwind,
+        /// <summary>后撤之后接的突进斩。不会被主动选中，只由后撤派生。</summary>
+        Lunge
     }
 
     [Serializable]
@@ -85,9 +89,51 @@ namespace BossFight.Boss
             [Range(0.01f, 1f)] public float quickStrikeWindupScale = 0.85f;
         }
 
+        [Serializable]
+        public sealed class WhirlwindSettings
+        {
+            public BossMoveRule rule = new BossMoveRule(4.2f, 5.8f, 9f);
+            [Min(0f)] public float windup = 0.6f;
+            [Min(0.01f), Tooltip("旋转持续多久")] public float duration = 2.2f;
+            [Min(0f), Tooltip("旋转时追向玩家的速度")] public float moveSpeed = 4.6f;
+            [Min(0f), Tooltip("旋转角速度（度/秒）")] public float spinSpeed = 900f;
+            [Min(0.05f), Tooltip("每隔多久结算一次伤害")] public float hitInterval = 0.4f;
+            [Min(0f)] public float damage = 10f;
+            [Min(0f), Tooltip("转完之后的收招，是玩家的反击窗口")] public float recovery = 1f;
+        }
+
+        [Serializable]
+        public sealed class LungeSettings
+        {
+            [Range(0f, 1f), Tooltip("后撤之后接突进的概率")] public float chance = 0.45f;
+            [Range(0f, 1f)] public float phaseTwoChance = 0.7f;
+            [Min(0f)] public float windup = 0.32f;
+            [Min(0.01f)] public float speed = 24f;
+            [Min(0f)] public float maxDistance = 9f;
+            [Min(0f), Tooltip("冲到离玩家多远时停下")] public float stopDistance = 2.2f;
+            [Min(0f)] public float damage = 20f;
+            [Min(0f)] public float recovery = 0.7f;
+        }
+
+        [Serializable]
+        public sealed class LongswordSettings
+        {
+            [Tooltip("设为 false 可以完全关闭长剑形态")] public bool enabled = true;
+            [Min(0f), Tooltip("玩家至少离这么远，Boss 才会合剑")] public float minDistance = 6f;
+            [Min(0.01f)] public float transformTime = 0.9f;
+            [Min(0.01f), Tooltip("长剑形态持续多久")] public float duration = 16f;
+            [Min(0f), Tooltip("形态结束后多久才能再次合剑")] public float cooldown = 10f;
+            [Min(0f), Tooltip("长剑形态的近战距离")] public float attackDistance = 4.6f;
+            [Min(1f), Tooltip("剑身和判定加长的倍率")] public float reachScale = 1.45f;
+            [Min(1f), Tooltip("技能范围放大的倍率（瞬身斩半径、剑气宽度）")] public float skillScale = 1.35f;
+        }
+
         public BlinkSlashSettings blinkSlash = new BlinkSlashSettings();
         public SwordWaveSettings swordWave = new SwordWaveSettings();
         public RetreatSettings retreat = new RetreatSettings();
         public PhaseSettings phase = new PhaseSettings();
+        public WhirlwindSettings whirlwind = new WhirlwindSettings();
+        public LungeSettings lunge = new LungeSettings();
+        public LongswordSettings longsword = new LongswordSettings();
     }
 }

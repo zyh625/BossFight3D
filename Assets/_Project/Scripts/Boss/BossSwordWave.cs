@@ -14,14 +14,16 @@ namespace BossFight.Boss
         private Vector3 start;
         private float travelled;
         private bool hit;
+        private float width;
 
-        internal void Initialize(BossController boss, BossSkillSettings.SwordWaveSettings skill, LayerMask walls, LayerMask targets)
+        internal void Initialize(BossController boss, BossSkillSettings.SwordWaveSettings skill, LayerMask walls, LayerMask targets, float widthScale = 1f)
         {
             owner = boss;
             settings = skill;
             environment = walls;
             hurtboxes = targets;
             start = transform.position;
+            width = skill.width * widthScale;
         }
 
         private void Update()
@@ -62,7 +64,7 @@ namespace BossFight.Boss
         private void CheckTarget(Vector3 forward, float step)
         {
             Vector3 midpoint = transform.position + forward * (step * 0.5f);
-            var extents = new Vector3(settings.width * 0.5f, 0.42f, step * 0.5f + 0.12f);
+            var extents = new Vector3(width * 0.5f, 0.42f, step * 0.5f + 0.12f);
             int count = Physics.OverlapBoxNonAlloc(midpoint, extents, contacts, transform.rotation, hurtboxes, QueryTriggerInteraction.Collide);
             for (int i = 0; i < count; i++)
             {

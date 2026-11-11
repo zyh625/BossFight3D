@@ -19,6 +19,7 @@ namespace BossFight.EditorTools
             {
                 SetDefaultVariedAttack(config);
                 SetDefaultDodgeCounter(config);
+                SetDefaultFistAttacks(config);
                 return config;
             }
 
@@ -43,6 +44,7 @@ namespace BossFight.EditorTools
 
             SetDefaultVariedAttack(config);
             SetDefaultDodgeCounter(config);
+            SetDefaultFistAttacks(config);
             return config;
         }
 
@@ -51,6 +53,7 @@ namespace BossFight.EditorTools
             var existing = AssetDatabase.LoadAssetAtPath<BossCombatConfig>(ProjectPaths.BossCombatConfig);
             if (existing != null)
             {
+                SetDefaultLongswordCombo(existing);
                 return existing;
             }
 
@@ -71,8 +74,60 @@ namespace BossFight.EditorTools
                     property.GetArrayElementAtIndex(i).objectReferenceValue = strikes[i];
                 }
             });
+            SetDefaultLongswordCombo(config);
             AssetDatabase.SaveAssets();
             return config;
+        }
+
+        private static void SetDefaultLongswordCombo(BossCombatConfig config)
+        {
+            if (config.HasLongswordCombo)
+            {
+                return;
+            }
+
+            // 长剑四连击：三快一慢。前三刀前摇很短，第四刀明显停顿后竖劈，收招很长
+            AttackData[] strikes =
+            {
+                Attack("Boss_Long1", "", 0.30f, 0.12f, 0f, 14f, 0f, 0f, 0.6f),
+                Attack("Boss_Long2", "", 0.24f, 0.12f, 0f, 14f, 0f, 0f, 0.5f),
+                Attack("Boss_Long3", "", 0.24f, 0.12f, 0f, 14f, 0f, 0f, 0.5f),
+                Attack("Boss_Long4", "", 0.85f, 0.16f, 1.1f, 30f, 0f, 0f, 0.8f)
+            };
+            EditorWiring.Edit(config, "longswordCombo", property =>
+            {
+                property.arraySize = strikes.Length;
+                for (int i = 0; i < strikes.Length; i++)
+                {
+                    property.GetArrayElementAtIndex(i).objectReferenceValue = strikes[i];
+                }
+            });
+            AssetDatabase.SaveAssets();
+        }
+
+        private static void SetDefaultFistAttacks(PlayerCombatConfig config)
+        {
+            if (config.FistComboLength == 0)
+            {
+                // 拳套：出手极快、伤害低、踏步短，靠连打和削格挡条
+                AttackData left = Attack("Player_FistLeft", "Punch1", 0.07f, 0.08f, 0.16f, 9f, 9f, 5f, 0.35f);
+                AttackData right = Attack("Player_FistRight", "Punch2", 0.07f, 0.08f, 0.18f, 10f, 9f, 5f, 0.35f);
+                EditorWiring.Edit(config, "fistCombo", combo =>
+                {
+                    combo.arraySize = 2;
+                    combo.GetArrayElementAtIndex(0).objectReferenceValue = left;
+                    combo.GetArrayElementAtIndex(1).objectReferenceValue = right;
+                });
+            }
+
+            if (config.FistHeavy == null)
+            {
+                // 蓄力冲拳：0.2 秒内向前冲 5 米（速度 25 m/s，看起来就是瞬移）再出拳
+                AttackData dash = Attack("Player_FistHeavy", "PunchHeavy", 0.10f, 0.10f, 0.5f, 38f, 40f, 0f, 5f);
+                EditorWiring.SetRef(config, "fistHeavy", dash);
+            }
+
+            AssetDatabase.SaveAssets();
         }
 
         private static void SetDefaultDodgeCounter(PlayerCombatConfig config)

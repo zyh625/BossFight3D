@@ -3,6 +3,7 @@ using System.Collections;
 using BossFight.Boss;
 using BossFight.Character;
 using BossFight.Combat;
+using BossFight.Game;
 using BossFight.Player;
 using NUnit.Framework;
 using UnityEngine;
@@ -135,11 +136,175 @@ namespace BossFight.Tests
             }
         }
 
-        private IEnumerator LoadArena(float distance)
+        // ---- P1：旋风斩、后撤突进、长剑形态 ----
+
+        [UnityTest]
+        public IEnumerator Whirlwind_HitsRepeatedly_AndReflectsDarts()
+        {
+            BossMoveRule waveRule = default;
+            try
+            {
+                yield return LoadArena(5f, skills =>
+                {
+                    waveRule = skills.swordWave.rule;
+                    skills.swordWave.rule.weight = 0f;
+                });
+                int hits = 0;
+                player.Damaged += result => hits += result.FinalDamage > 0f ? 1 : 0;
+                yield return WaitFor(() => boss.Status == BossStatus.Whirlwind, 1f);
+                Assert.IsFalse(boss.ReflectsProjectiles, "蓄势阶段还不会反弹");
+                yield return WaitFor(() => boss.ReflectsProjectiles, 1.2f);
+
+                var launcher = player.GetComponent<DartLauncher>();
+                EnergyDart dart = launcher.Fire(0f);
+                yield return WaitFor(() => dart.WasReflected, 1f);
+                Assert.IsTrue(dart.WasReflected, "旋转中的 Boss 应把飞镖弹回");
+
+                yield return WaitFor(() => boss.Status != BossStatus.Whirlwind, 4.5f);
+                Assert.GreaterOrEqual(hits, 2, "旋风斩是多段伤害");
+            }
+            finally
+            {
+                boss.Config.Skills.swordWave.rule = waveRule;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Victory_RecallsReflectedDartBeforeItCanDamagePlayer()
+        {
+            BossMoveRule waveRule = default;
+            try
+            {
+                yield return LoadArena(5f, skills =>
+                {
+                    waveRule = skills.swordWave.rule;
+                    skills.swordWave.rule.weight = 0f;
+                });
+                var fight = Object.FindAnyObjectByType<FightDirector>();
+                yield return WaitFor(() => boss.ReflectsProjectiles, 1.2f);
+                EnergyDart dart = player.GetComponent<DartLauncher>().Fire(0f);
+                yield return WaitFor(() => dart.WasReflected, 1f);
+                Assert.IsTrue(dart.IsFlying);
+
+                HitBoss(boss.Receiver.Health.Max * 2f, 0f);
+                yield return WaitFor(() => fight.Result == FightResult.Victory, 0.5f);
+                float healthOnVictory = player.Health.Current;
+
+                Assert.IsFalse(dart.IsFlying);
+                yield return new WaitForSeconds(0.5f);
+                Assert.AreEqual(healthOnVictory, player.Health.Current);
+            }
+            finally
+            {
+                boss.Config.Skills.swordWave.rule = waveRule;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RetreatCanChainIntoALunge()
+        {
+            yield return LoadArena(3.7f);
+            var skills = boss.Config.Skills;
+            float oldBase = skills.retreat.baseChance;
+            float oldMax = skills.retreat.maxChance;
+            float oldLunge = skills.lunge.chance;
+            skills.retreat.baseChance = 1f;
+            skills.retreat.maxChance = 1f;
+            skills.lunge.chance = 1f;
+            try
+            {
+                HitBoss(10f, 10f);
+                Assert.AreEqual(BossStatus.Retreat, boss.Status);
+                yield return WaitFor(() => boss.Status == BossStatus.Lunge, 1f);
+                Assert.AreEqual(BossStatus.Lunge, boss.Status, "后撤收招后应接突进");
+
+                float before = boss.DirectionToTargetDistance;
+                yield return WaitFor(() => boss.Status == BossStatus.Approach, 2.5f);
+                Assert.Less(boss.DirectionToTargetDistance, before - 2f, "突进应明显拉近距离");
+            }
+            finally
+            {
+                skills.retreat.baseChance = oldBase;
+                skills.retreat.maxChance = oldMax;
+                skills.lunge.chance = oldLunge;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator PhaseTwoAtRange_MergesIntoALongsword_WithAFourHitCombo()
+        {
+            yield return LoadArena(9f);
+            var skills = boss.Config.Skills;
+            BossMoveRule blinkRule = skills.blinkSlash.rule;
+            BossMoveRule waveRule = skills.swordWave.rule;
+            skills.blinkSlash.rule.weight = 0f;
+            skills.swordWave.rule.weight = 0f;
+            try
+            {
+                Assert.AreEqual(3, boss.ComboLength);
+                Health health = boss.Receiver.Health;
+                // 打掉 60% 的血触发转阶段。Boss 正在格挡时伤害只剩 20%，按当时的状态换算出需要的数值
+                HitBoss(health.Max * 0.6f / (boss.CanGuard ? 0.2f : 1f), 0f);
+                Assert.IsTrue(boss.IsPhaseTwo);
+
+                playerMotor.Teleport(boss.transform.position + Vector3.back * 9f);
+                yield return WaitFor(() => boss.IsLongsword, 4.5f);
+                Assert.IsTrue(boss.IsLongsword, "二阶段且玩家在远处时应合剑");
+                Assert.AreEqual(4, boss.ComboLength, "长剑形态是四连击");
+                Assert.IsFalse(boss.CanGuard, "长剑形态不格挡");
+
+                float guardBefore = boss.Guard.Current;
+                DamageResult result = HitBoss(10f, 15f);
+                Assert.AreEqual(HitOutcome.Hit, result.Outcome);
+                Assert.AreEqual(10f, result.FinalDamage, 0.01f, "长剑形态下伤害不被格挡削减");
+                Assert.AreEqual(guardBefore - 15f, boss.Guard.Current, 0.5f, "同时照常削减格挡条");
+            }
+            finally
+            {
+                skills.blinkSlash.rule = blinkRule;
+                skills.swordWave.rule = waveRule;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator LongswordExpiresDuringContinuousApproach()
+        {
+            yield return LoadArena(9f);
+            var skills = boss.Config.Skills;
+            var settings = skills.longsword;
+            var blinkRule = skills.blinkSlash.rule;
+            var waveRule = skills.swordWave.rule;
+            var whirlRule = skills.whirlwind.rule;
+            skills.blinkSlash.rule.weight = 0f;
+            skills.swordWave.rule.weight = 0f;
+            skills.whirlwind.rule.weight = 0f;
+            skills.longsword.duration = 0.25f;
+            try
+            {
+                HitBoss(boss.Receiver.Health.Max * 0.6f / (boss.CanGuard ? 0.2f : 1f), 0f);
+                playerMotor.Teleport(boss.transform.position + Vector3.back * 9f);
+                yield return WaitFor(() => boss.IsLongsword, 4.5f);
+                yield return new WaitForSeconds(0.5f);
+
+                Assert.AreEqual(BossStatus.Approach, boss.Status);
+                Assert.IsFalse(boss.IsLongsword);
+                Assert.AreEqual(3, boss.ComboLength);
+            }
+            finally
+            {
+                skills.longsword = settings;
+                skills.blinkSlash.rule = blinkRule;
+                skills.swordWave.rule = waveRule;
+                skills.whirlwind.rule = whirlRule;
+            }
+        }
+
+        private IEnumerator LoadArena(float distance, Action<BossSkillSettings> configureSkills = null)
         {
             void PositionPlayer(Scene scene, LoadSceneMode mode)
             {
                 boss = Object.FindAnyObjectByType<BossController>();
+                configureSkills?.Invoke(boss.Config.Skills);
                 var controller = Object.FindAnyObjectByType<PlayerController>();
                 player = controller.GetComponent<DamageReceiver>();
                 playerMotor = controller.GetComponent<CharacterMotor>();
