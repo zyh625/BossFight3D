@@ -11,22 +11,24 @@ namespace BossFight.EditorTools
         public static readonly Color NeonCyan = new Color(0.1f, 0.9f, 1f);
         public static readonly Color NeonMagenta = new Color(1f, 0.15f, 0.7f);
 
-        public static Material Floor => GetOrCreate("Floor", new Color(0.06f, 0.07f, 0.1f), 0.3f, 0.8f);
-        public static Material Wall => GetOrCreate("Wall", new Color(0.1f, 0.11f, 0.15f), 0.1f, 0.4f);
-        public static Material NeonStrip => GetOrCreate("NeonCyan", Color.black, 0f, 0.5f, NeonCyan, 4f);
-        public static Material NeonAccent => GetOrCreate("NeonMagenta", Color.black, 0f, 0.5f, NeonMagenta, 4f);
-        public static Material PlaceholderBody => GetOrCreate("PlaceholderBody", new Color(0.3f, 0.32f, 0.4f), 0f, 0.5f);
+        public static Material Floor => GetOrCreate("Floor", new Color(0.62f, 0.66f, 0.72f), 0f, 0.45f);
+        public static Material Wall => GetOrCreate("Wall", new Color(0.82f, 0.84f, 0.88f), 0f, 0.3f);
+        public static Material NeonStrip => GetOrCreate("NeonCyan", Color.black, 0f, 0.5f, NeonCyan, 1.6f);
+        public static Material NeonAccent => GetOrCreate("NeonMagenta", Color.black, 0f, 0.5f, NeonMagenta, 1.6f);
+        public static Material PlaceholderBody => GetOrCreate("PlaceholderBody", new Color(0.16f, 0.18f, 0.26f), 0f, 0.5f);
 
         /// <summary>
-        /// 所有特效（刀光、火花、光环、残影）共用的加色材质：无光照、叠加混合、双面、不写深度。
-        /// 基础颜色是 HDR 白（亮度 3），实际颜色来自顶点色 / 粒子颜色，所以一份材质就够用，
-        /// 并且任何用它的东西都会超过 Bloom 阈值而发光。
+        /// 所有特效（刀光、火花、光环、残影）共用的材质：无光照、半透明混合、双面、不写深度。
+        /// 实际颜色和透明度来自顶点色 / 粒子颜色 / MaterialPropertyBlock，所以一份材质就够用。
+        ///
+        /// 用普通的透明混合而不是加色混合：场地是明亮配色，加色混合是"往背景上加亮度"，
+        /// 背景本来就亮时几乎看不出来；透明混合是"用特效的颜色盖住背景"，在亮背景上也清晰。
         /// </summary>
-        public static Material FxAdditive
+        public static Material FxGlow
         {
             get
             {
-                string path = $"{ProjectPaths.Materials}/FxAdditive.mat";
+                string path = $"{ProjectPaths.Materials}/FxGlow.mat";
                 var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
                 if (existing != null)
                 {
@@ -34,25 +36,26 @@ namespace BossFight.EditorTools
                 }
 
                 var material = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
-                ConfigureAdditive(material);
+                ConfigureTransparent(material);
                 ProjectPaths.EnsureFolderFor(path);
                 AssetDatabase.CreateAsset(material, path);
                 // URP 在创建材质资源时会按属性重新校验一遍关键字，创建后再设一次保证最终状态正确
-                ConfigureAdditive(material);
+                ConfigureTransparent(material);
                 EditorUtility.SetDirty(material);
                 return material;
             }
         }
 
-        private static void ConfigureAdditive(Material material)
+        private static void ConfigureTransparent(Material material)
         {
             material.SetFloat("_Surface", 1f);   // Transparent
-            material.SetFloat("_Blend", 2f);     // Additive
+            material.SetFloat("_Blend", 0f);     // Alpha
             material.SetFloat("_Cull", 0f);      // 双面
             material.SetFloat("_ZWrite", 0f);
             material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
-            material.SetColor("_BaseColor", new Color(3f, 3f, 3f, 1f));
+            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            // 略高于 1 的亮度：颜色鲜艳并带一点辉光，但不会被色调映射洗成白色
+            material.SetColor("_BaseColor", new Color(1.3f, 1.3f, 1.3f, 1f));
             material.SetOverrideTag("RenderType", "Transparent");
             material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;

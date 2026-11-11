@@ -22,7 +22,11 @@ MonoBehaviour:
   fullChargeDamageMultiplier: 1.55
   chargeMoveMultiplier: 0.35
   chargeAnimationState: HeavyCharge
+  chargePresentationDelay: 0.12
+  heavyLeapHeight: 0.85
   variedAttack: {fileID: 11400000, guid: 4460f5dd330dfc045afda2d7adc2fd9c, type: 2}
+  dodgeCounter: {fileID: 11400000, guid: 49e756e170c86204e9ca5c4df1a7f450, type: 2}
+  dodgeCounterWindow: 0.6
   seeThroughWindow: 0.2
   counterDamageMultiplier: 1.3
   counterBonusGuardDamage: 25
@@ -32,7 +36,13 @@ MonoBehaviour:
   rollDistance: 4.5
   rollInvulnerabilityStart: 0.05
   rollInvulnerabilityEnd: 0.35
+  rollCancelTime: 0.42
+  jumpHeight: 1.35
+  airMoveMultiplier: 0.85
+  hitStunDuration: 0.4
+  hitStunRollCancelTime: 0.25
   inputBufferTime: 0.35
   attackTurnSpeed: 1440
+  moveCancelThreshold: 0.5
   sprintStaminaPerSecond: 12
   staminaCostMultiplier: 0.4

@@ -20,6 +20,7 @@ namespace BossFight.EditorTools
         public const string BossPrefab = Root + "/Prefabs/ShadowSwordsman.prefab";
         public const string ArenaScene = Root + "/Scenes/Arena.unity";
         public const string ArenaVolumeProfile = Root + "/Settings/ArenaVolumeProfile.asset";
+        public const string SlowMotionVolumeProfile = Root + "/Settings/SlowMotionVolumeProfile.asset";
 
         // Mixamo 原始素材（不进 git）
         public const string MixamoCharacter = Root + "/Art/Mixamo/Characters/YBot.fbx";

@@ -28,8 +28,8 @@ namespace BossFight.Feedback
         [SerializeField] private Transform tipPoint;
         [SerializeField] private Material material;
         [SerializeField] private Color color = new Color(0.3f, 0.95f, 1f);
-        [Tooltip("亮度。材质本身是 3 倍 HDR 亮度，大面积的刀光用满亮度会被色调映射洗成白色，所以压低")]
-        [SerializeField, Range(0f, 1f)] private float brightness = 0.4f;
+        [Tooltip("亮度")]
+        [SerializeField, Range(0f, 1f)] private float brightness = 1f;
 
         [Tooltip("每个采样存活多久（秒），决定拖尾的长度")]
         [SerializeField, Min(0.02f)] private float lifetime = 0.16f;

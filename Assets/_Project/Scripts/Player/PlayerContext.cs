@@ -36,6 +36,9 @@ namespace BossFight.Player
         // 切手技或耗尽体力的重击消耗掉当前这次右键长按。
         public bool ChargeHoldConsumed { get; set; }
 
+        private double dodgeCounterUntil;
+        private Transform dodgeCounterTarget;
+
         public void ToLocomotion()
         {
             Machine.ChangeState(Locomotion);
@@ -93,6 +96,30 @@ namespace BossFight.Player
             }
 
             Machine.ChangeState(Charge);
+            return true;
+        }
+
+        /// <summary>完美闪避后开启一小段"可以反击"的时间，并记住被躲开的是谁。</summary>
+        public void OpenDodgeCounter(Transform attacker)
+        {
+            dodgeCounterUntil = ActionTime + Combat.DodgeCounterWindow;
+            dodgeCounterTarget = attacker;
+        }
+
+        /// <summary>
+        /// 反击窗口内缓冲里有左键指令，就打出闪避反击。翻滚中途也可以直接接，不用等翻滚结束。
+        /// </summary>
+        public bool TryStartDodgeCounter()
+        {
+            if (Combat.DodgeCounter == null || ActionTime > dodgeCounterUntil
+                || !Buffer.TryConsume(PlayerCommand.LightAttack))
+            {
+                return false;
+            }
+
+            dodgeCounterUntil = 0d;
+            Attack.SetupDodgeCounter(Combat.DodgeCounter, dodgeCounterTarget);
+            Machine.ChangeState(Attack);
             return true;
         }
 

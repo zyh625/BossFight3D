@@ -18,6 +18,7 @@ namespace BossFight.EditorTools
             if (config != null)
             {
                 SetDefaultVariedAttack(config);
+                SetDefaultDodgeCounter(config);
                 return config;
             }
 
@@ -41,6 +42,7 @@ namespace BossFight.EditorTools
             EditorWiring.SetRef(config, "heavyAttack", heavy);
 
             SetDefaultVariedAttack(config);
+            SetDefaultDodgeCounter(config);
             return config;
         }
 
@@ -71,6 +73,17 @@ namespace BossFight.EditorTools
             });
             AssetDatabase.SaveAssets();
             return config;
+        }
+
+        private static void SetDefaultDodgeCounter(PlayerCombatConfig config)
+        {
+            if (config.DodgeCounter == null)
+            {
+                // 前摇很短、突进很远、不耗体力：完美闪避的奖励
+                AttackData counter = Attack("Player_DodgeCounter", "Light3", 0.08f, 0.12f, 0.35f, 30f, 20f, 0f, 3f);
+                EditorWiring.SetRef(config, "dodgeCounter", counter);
+                AssetDatabase.SaveAssets();
+            }
         }
 
         private static void SetDefaultVariedAttack(PlayerCombatConfig config)

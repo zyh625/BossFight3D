@@ -94,7 +94,9 @@ namespace BossFight.Feedback
         private void Play(AudioClip clip, float volume, float pitchScale = 1f)
         {
             // PlayOneShot 允许同一个 AudioSource 上多个声音重叠播放
-            source.pitch = basePitch * pitchScale * (1f + Random.Range(-pitchJitter, pitchJitter));
+            // 慢动作时声音跟着变低沉：音高随时间流速在 0.55~1 之间变化
+            float slowMotionPitch = Mathf.Lerp(0.55f, 1f, Mathf.Clamp01(Time.timeScale));
+            source.pitch = basePitch * pitchScale * slowMotionPitch * (1f + Random.Range(-pitchJitter, pitchJitter));
             source.PlayOneShot(clip, volume);
         }
     }

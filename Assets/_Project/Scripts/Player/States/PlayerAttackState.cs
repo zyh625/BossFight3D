@@ -9,7 +9,9 @@ namespace BossFight.Player.States
         None,
         Light,
         Combination,
-        ChargedHeavy
+        ChargedHeavy,
+        /// <summary>完美闪避后的突进斩。</summary>
+        DodgeCounter
     }
 
     /// <summary>轻击、切手技和蓄力重击共用时序。识破会跳过本次攻击剩余的前摇。</summary>
@@ -32,6 +34,8 @@ namespace BossFight.Player.States
         private Vector3 aimDirection;
         private float lungeSpeed;
         private float lungeRemaining;
+        private Transform counterTarget;
+        private bool isDodgeCounter;
 
         public PlayerAttackKind Kind { get; private set; }
         public bool IsWindingUp => !hitboxOpened;
@@ -51,6 +55,15 @@ namespace BossFight.Player.States
             comboIndex = index;
             damageMultiplier = damageScale;
             staminaSpent = spent;
+            counterTarget = null;
+        }
+
+        /// <summary>闪避反击：朝刚才被躲开的那个攻击者突进。之后按左键从连段第一段接上。</summary>
+        public void SetupDodgeCounter(AttackData attack, Transform target)
+        {
+            Setup(attack, -1, 1f);
+            counterTarget = target;
+            isDodgeCounter = true;
         }
 
         public void Enter()
@@ -58,11 +71,14 @@ namespace BossFight.Player.States
             startedAt = ctx.ActionTime;
             elapsed = 0f;
             hitboxOpened = false;
-            canSeeThrough = comboIndex < 0;
+            // 闪避反击是闪避的奖励，不是识破的出手，所以它不能再触发识破
+            canSeeThrough = comboIndex < 0 && !isDodgeCounter;
             windup = canSeeThrough ? Mathf.Max(data.Windup, ctx.Combat.SeeThroughWindow) : data.Windup;
             guardDamage = data.GuardDamage;
             bool heavy = data == ctx.Combat.HeavyAttack;
-            Kind = heavy ? PlayerAttackKind.ChargedHeavy : comboIndex >= 0 ? PlayerAttackKind.Light : PlayerAttackKind.Combination;
+            Kind = isDodgeCounter ? PlayerAttackKind.DodgeCounter
+                : heavy ? PlayerAttackKind.ChargedHeavy
+                : comboIndex >= 0 ? PlayerAttackKind.Light : PlayerAttackKind.Combination;
             impact = heavy ? AttackImpact.ChargedHeavy : AttackImpact.Normal;
             if (heavy)
             {
@@ -75,6 +91,21 @@ namespace BossFight.Player.States
                 aimDirection = move.sqrMagnitude > 0.01f
                     ? ctx.Movement.ToWorldDirection(move).normalized
                     : ctx.Transform.forward;
+            }
+
+            if (isDodgeCounter)
+            {
+                // 翻滚时按着的方向键是躲避方向，不能拿来当攻击方向：直接转向被躲开的攻击者
+                if (counterTarget != null)
+                {
+                    Vector3 toTarget = counterTarget.position - ctx.Transform.position;
+                    toTarget.y = 0f;
+                    if (toTarget.sqrMagnitude > 0.01f)
+                    {
+                        aimDirection = toTarget.normalized;
+                    }
+                }
+                ctx.Transform.rotation = Quaternion.LookRotation(aimDirection);
             }
 
             lungeRemaining = data.LungeDistance;
@@ -180,6 +211,7 @@ namespace BossFight.Player.States
         public void Exit()
         {
             ctx.WeaponHitbox.End();
+            isDodgeCounter = false;
         }
     }
 }

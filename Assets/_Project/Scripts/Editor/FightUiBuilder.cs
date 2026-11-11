@@ -64,7 +64,7 @@ namespace BossFight.EditorTools
             Text freeStamina = Label("Free Stamina", player, "", 15, 135f, -10f, 173f, 26f, TextAnchor.MiddleRight, Accent);
             BarView playerHealth = Bar("Player Health", player, "生命", 16f, -40f, 292f, HealthColor);
             BarView playerStamina = Bar("Player Stamina", player, "体力", 16f, -71f, 292f, Accent);
-            BarView skill = Bar("Skill Gauge", player, "特殊技 · 待解锁", 16f, -102f, 292f, new Color(0.43f, 0.58f, 0.98f));
+            BarView skill = Bar("Skill Gauge", player, "慢动作 [R]", 16f, -102f, 292f, new Color(0.43f, 0.58f, 0.98f));
             BarView charge = Bar("Heavy Charge", player, "重击蓄力", 16f, 39f, 292f, new Color(1f, 0.7f, 0.22f));
             charge.gameObject.SetActive(false);
 

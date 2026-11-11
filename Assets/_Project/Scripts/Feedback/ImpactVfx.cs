@@ -33,7 +33,7 @@ namespace BossFight.Feedback
         [SerializeField, Min(1)] private int maxSparkCount = 70;
 
         [Tooltip("光环颜色的亮度倍率，大于 1 才会产生辉光")]
-        [SerializeField, Min(0f)] private float ringIntensity = 3f;
+        [SerializeField, Min(0f)] private float ringIntensity = 1.4f;
 
         [Header("闪光")]
         [SerializeField, Min(0f)] private float flashIntensity = 14f;

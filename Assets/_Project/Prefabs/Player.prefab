@@ -323,6 +323,8 @@ GameObject:
   - component: {fileID: 4314746876469004738}
   - component: {fileID: 8767409743459523834}
   - component: {fileID: 873133312779174151}
+  - component: {fileID: 7388795810418186043}
+  - component: {fileID: 8600464971103592983}
   - component: {fileID: 2411371644918232595}
   - component: {fileID: 3833123080488787223}
   - component: {fileID: 2184156478946455306}
@@ -671,6 +673,42 @@ MonoBehaviour:
   parryImpulse: 0.22
   finisherHitStop: 0.25
   finisherImpulse: 0.32
+--- !u!114 &7388795810418186043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b82c265648af21409a79047bf8c7df5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Combat::BossFight.Combat.SkillGauge
+  max: 100
+  startValue: 100
+  passiveRegen: 5
+  gainOnPerfectDodge: 15
+  gainOnSeeThrough: 20
+--- !u!114 &8600464971103592983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419861734185966653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e2fb072fcaf6b340aef42d3c8849882, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BossFight.Player::BossFight.Player.SlowMotionController
+  input: {fileID: 7229047378612497}
+  player: {fileID: 8365387490131430803}
+  gauge: {fileID: 7388795810418186043}
+  health: {fileID: 4787963496386320859}
+  slowTimeScale: 0.4
+  drainPerSecond: 25
+  minimumToStart: 10
 --- !u!114 &2411371644918232595
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -683,7 +721,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bc7ad424004ef446bbcd46658bc1112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.ImpactVfx
-  material: {fileID: 2100000, guid: a01c5d4d052b6a24f95c7fb34b2e3a1e, type: 2}
+  material: {fileID: 2100000, guid: 34f77d3968b74db48969975e4f318ee2, type: 2}
   hitColor: {r: 1, g: 0.85, b: 0.55, a: 1}
   blockColor: {r: 0.45, g: 0.75, b: 1, a: 1}
   parryColor: {r: 1, g: 0.8, b: 0.25, a: 1}
@@ -691,7 +729,7 @@ MonoBehaviour:
   baseSparkCount: 10
   sparksPerDamage: 0.5
   maxSparkCount: 70
-  ringIntensity: 3
+  ringIntensity: 1.4
   flashIntensity: 14
   flashDuration: 0.14
 --- !u!114 &3833123080488787223
@@ -729,9 +767,9 @@ MonoBehaviour:
   hitbox: {fileID: 3063143530650580976}
   basePoint: {fileID: 8968552999436940768}
   tipPoint: {fileID: 4525684049125940070}
-  material: {fileID: 2100000, guid: a01c5d4d052b6a24f95c7fb34b2e3a1e, type: 2}
+  material: {fileID: 2100000, guid: 34f77d3968b74db48969975e4f318ee2, type: 2}
   color: {r: 0.1, g: 0.9, b: 1, a: 1}
-  brightness: 0.4
+  brightness: 1
   lifetime: 0.16
   subdivisions: 4
   baseAlpha: 0.15
@@ -750,9 +788,10 @@ MonoBehaviour:
   sources:
   - {fileID: 3767945649029551829}
   - {fileID: 5268022057509699793}
-  material: {fileID: 2100000, guid: a01c5d4d052b6a24f95c7fb34b2e3a1e, type: 2}
+  material: {fileID: 2100000, guid: 34f77d3968b74db48969975e4f318ee2, type: 2}
   color: {r: 0.1, g: 0.9, b: 1, a: 1}
-  intensity: 0.7
+  intensity: 1.2
+  maxAlpha: 0.55
   speedThreshold: 7
   teleportDistance: 2.5
   teleportGhosts: 4

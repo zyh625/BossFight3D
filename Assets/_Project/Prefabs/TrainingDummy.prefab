@@ -238,7 +238,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bc7ad424004ef446bbcd46658bc1112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BossFight.Feedback::BossFight.Feedback.ImpactVfx
-  material: {fileID: 2100000, guid: a01c5d4d052b6a24f95c7fb34b2e3a1e, type: 2}
+  material: {fileID: 2100000, guid: 34f77d3968b74db48969975e4f318ee2, type: 2}
   hitColor: {r: 1, g: 0.85, b: 0.55, a: 1}
   blockColor: {r: 0.45, g: 0.75, b: 1, a: 1}
   parryColor: {r: 1, g: 0.8, b: 0.25, a: 1}
@@ -246,7 +246,7 @@ MonoBehaviour:
   baseSparkCount: 10
   sparksPerDamage: 0.5
   maxSparkCount: 70
-  ringIntensity: 3
+  ringIntensity: 1.4
   flashIntensity: 14
   flashDuration: 0.14
 --- !u!114 &1353849446224455845

@@ -32,8 +32,10 @@ namespace BossFight.Feedback
         [SerializeField] private Transform[] sources;
         [SerializeField] private Material material;
         [SerializeField] private Color color = new Color(0.2f, 0.85f, 1f);
-        [Tooltip("颜色的亮度倍率，大于 1 才会产生辉光")]
-        [SerializeField, Min(0f)] private float intensity = 0.7f;
+        [Tooltip("颜色的亮度倍率")]
+        [SerializeField, Min(0f)] private float intensity = 1.2f;
+        [Tooltip("残影刚出现时的不透明度")]
+        [SerializeField, Range(0f, 1f)] private float maxAlpha = 0.55f;
 
         [Header("触发条件")]
         [Tooltip("水平速度超过这个值时开始留残影（m/s）")]
@@ -223,8 +225,10 @@ namespace BossFight.Feedback
 
         private void ApplyColor(Ghost ghost, float strength)
         {
-            // 加色混合下，颜色越暗越透明，所以直接把颜色乘以强度就是淡出
-            block.SetColor(BaseColorId, color * (intensity * strength));
+            // 颜色保持不变，用透明度淡出
+            Color tint = color * intensity;
+            tint.a = strength * maxAlpha;
+            block.SetColor(BaseColorId, tint);
             foreach (MeshRenderer ghostRenderer in ghost.Renderers)
             {
                 ghostRenderer.SetPropertyBlock(block);

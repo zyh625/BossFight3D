@@ -27,7 +27,6 @@ namespace BossFight.UI
         private void Awake()
         {
             canvas = (RectTransform)transform;
-            skillGauge.SetValue(0f, 100f);
         }
 
         private void Start() => view = Camera.main;
@@ -47,6 +46,11 @@ namespace BossFight.UI
             playerHealth.SetValue(fight.PlayerHealth.Current, fight.PlayerHealth.Max);
             var stamina = fight.PlayerStamina;
             playerStamina.SetValue(stamina.Current, stamina.Max);
+            var gauge = fight.PlayerSkillGauge;
+            if (gauge != null)
+            {
+                skillGauge.SetValue(gauge.Current, gauge.Max);
+            }
             bossHealth.SetValue(fight.BossHealth.Current, fight.BossHealth.Max);
             BossController boss = fight.Boss;
             bossGuard.SetValue(boss.Guard.Current, boss.Guard.Max);

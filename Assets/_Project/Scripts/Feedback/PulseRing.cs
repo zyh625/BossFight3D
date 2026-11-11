@@ -71,7 +71,9 @@ namespace BossFight.Feedback
             float radius = Mathf.Lerp(startRadius, endRadius, eased);
             transform.localScale = new Vector3(radius, 1f, radius);
 
-            Color faded = color * (1f - t);
+            // 颜色不变，只让透明度衰减到 0
+            Color faded = color;
+            faded.a = 1f - t;
             block.SetColor(BaseColorId, faded);
             meshRenderer.SetPropertyBlock(block);
         }

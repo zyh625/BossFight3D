@@ -29,6 +29,7 @@ namespace BossFight.Game
         public Health PlayerHealth { get; private set; }
         public Health BossHealth { get; private set; }
         public Stamina PlayerStamina { get; private set; }
+        public SkillGauge PlayerSkillGauge { get; private set; }
         public BossController Boss => boss;
         public LockOnTargeting Targeting => targeting;
         public float ChargeRatio => player.VisibleChargeRatio;
@@ -42,6 +43,7 @@ namespace BossFight.Game
             PlayerHealth = player.GetComponent<Health>();
             BossHealth = boss.GetComponent<Health>();
             PlayerStamina = player.GetComponent<Stamina>();
+            PlayerSkillGauge = player.GetComponent<SkillGauge>();
             targeting = player.GetComponent<LockOnTargeting>();
         }
 

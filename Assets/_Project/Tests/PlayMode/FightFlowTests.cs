@@ -38,7 +38,7 @@ namespace BossFight.Tests
             Assert.AreEqual(0.70f, Fill("Player Stamina"), 0.01f);
             Assert.AreEqual(1190f / 1200f, Fill("Boss Health"), 0.01f);
             Assert.AreEqual(0.75f, Fill("Boss Guard"), 0.01f);
-            Assert.AreEqual(0f, Fill("Skill Gauge"), 0.01f);
+            Assert.AreEqual(1f, Fill("Skill Gauge"), 0.01f, "技能条开局是满的");
         }
 
         [UnityTest]

@@ -31,6 +31,12 @@ namespace BossFight.Player
         [Header("切手技（按住右键时按下左键）")]
         [SerializeField] private AttackData variedAttack;
 
+        [Header("闪避反击（完美闪避后短时间内按左键）")]
+        [Tooltip("一记快速的突进斩。不消耗体力：它是完美闪避的奖励")]
+        [SerializeField] private AttackData dodgeCounter;
+        [Tooltip("完美闪避之后，这么长时间内按左键可以打出闪避反击（秒）")]
+        [SerializeField, Min(0f)] private float dodgeCounterWindow = 0.6f;
+
         [Header("识破")]
         [Min(0f)]
         [SerializeField] private float seeThroughWindow = 0.2f;
@@ -105,5 +111,7 @@ namespace BossFight.Player
         public float AttackTurnSpeed => attackTurnSpeed;
         public float SprintStaminaPerSecond => sprintStaminaPerSecond;
         public float StaminaCostMultiplier => staminaCostMultiplier;
+        public AttackData DodgeCounter => dodgeCounter;
+        public float DodgeCounterWindow => dodgeCounterWindow;
     }
 }

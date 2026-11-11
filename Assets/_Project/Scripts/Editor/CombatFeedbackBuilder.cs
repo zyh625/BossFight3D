@@ -21,7 +21,7 @@ namespace BossFight.EditorTools
         public static void AddHitEffects(GameObject actor, Hitbox[] hitboxes, float voicePitch = 1f)
         {
             var vfx = actor.AddComponent<ImpactVfx>();
-            EditorWiring.SetRef(vfx, "material", ArenaMaterials.FxAdditive);
+            EditorWiring.SetRef(vfx, "material", ArenaMaterials.FxGlow);
 
             var sfx = actor.AddComponent<CombatSfx>();
             EditorWiring.SetRef(sfx, "receiver", actor.GetComponent<DamageReceiver>());
@@ -44,7 +44,7 @@ namespace BossFight.EditorTools
             EditorWiring.SetRef(trail, "hitbox", hitbox);
             EditorWiring.SetRef(trail, "basePoint", basePoint);
             EditorWiring.SetRef(trail, "tipPoint", tipPoint);
-            EditorWiring.SetRef(trail, "material", ArenaMaterials.FxAdditive);
+            EditorWiring.SetRef(trail, "material", ArenaMaterials.FxGlow);
             EditorWiring.Edit(trail, "color", p => p.colorValue = color);
         }
 
@@ -52,7 +52,7 @@ namespace BossFight.EditorTools
         public static void AddAfterImages(GameObject actor, Transform[] sources, Color color, float speedThreshold)
         {
             var trail = actor.AddComponent<AfterImageTrail>();
-            EditorWiring.SetRef(trail, "material", ArenaMaterials.FxAdditive);
+            EditorWiring.SetRef(trail, "material", ArenaMaterials.FxGlow);
             EditorWiring.Edit(trail, "color", p => p.colorValue = color);
             EditorWiring.Edit(trail, "speedThreshold", p => p.floatValue = speedThreshold);
             EditorWiring.Edit(trail, "sources", p =>

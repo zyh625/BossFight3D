@@ -37,6 +37,12 @@ namespace BossFight.Player.States
 
         public void Tick(float dt)
         {
+            // 完美闪避之后，翻滚的任意时刻都可以直接接闪避反击
+            if (ctx.TryStartDodgeCounter())
+            {
+                return;
+            }
+
             float duration = ctx.Combat.RollDuration;
             float moveTime = Mathf.Min(dt, duration - elapsed);
             float speed = dt > 0f ? ctx.Combat.RollDistance / duration * (moveTime / dt) : 0f;

@@ -70,6 +70,8 @@ namespace BossFight.Tests
         [TearDown]
         public void TearDown()
         {
+            Time.timeScale = 1f; // 慢动作用例即使中途失败，也不能把变慢的时间留给后面的用例
+            Time.fixedDeltaTime = 0.02f;
             Application.targetFrameRate = -1;
             input.TearDown();
         }
@@ -502,6 +504,73 @@ namespace BossFight.Tests
             Assert.AreEqual(stamina.Max - 5f, stamina.Current, 0.01f);
             yield return new WaitForSeconds(0.35f);
             Assert.AreEqual(HitOutcome.Hit, HitPlayer().Outcome);
+        }
+
+        // ---- P1：慢动作与闪避反击 ----
+
+        [UnityTest]
+        public IEnumerator R_TogglesSlowMotion_AndDrainsTheSkillGaugeInRealTime()
+        {
+            var gauge = player.GetComponent<SkillGauge>();
+            float before = gauge.Current;
+
+            yield return Tap(keyboard.rKey);
+            yield return null;
+            Assert.AreEqual(0.4f, Time.timeScale, 0.001f, "按 R 应进入慢动作");
+
+            // 等待现实中的 1 秒：技能条按真实时间扣（25/秒），不因为游戏变慢而少扣
+            yield return new WaitForSecondsRealtime(1f);
+            Assert.AreEqual(before - 25f, gauge.Current, 4f);
+
+            yield return Tap(keyboard.rKey);
+            yield return null;
+            Assert.AreEqual(1f, Time.timeScale, 0.001f, "再按一次 R 应恢复正常流速");
+            Assert.AreEqual(0.02f, Time.fixedDeltaTime, 0.0001f);
+        }
+
+        [UnityTest]
+        public IEnumerator SlowMotion_EndsByItself_WhenTheGaugeRunsOut()
+        {
+            var gauge = player.GetComponent<SkillGauge>();
+            gauge.Drain(gauge.Current - 12f);
+
+            yield return Tap(keyboard.rKey);
+            yield return null;
+            Assert.AreEqual(0.4f, Time.timeScale, 0.001f);
+
+            yield return new WaitForSecondsRealtime(0.8f);
+            Assert.AreEqual(1f, Time.timeScale, 0.001f, "技能条耗尽后应自动结束慢动作");
+        }
+
+        [UnityTest]
+        public IEnumerator PerfectDodge_ThenLeftClick_PerformsTheDodgeCounter()
+        {
+            var gauge = player.GetComponent<SkillGauge>();
+            gauge.Drain(50f);
+            float gaugeBefore = gauge.Current;
+
+            yield return Tap(keyboard.spaceKey);
+            yield return new WaitForSeconds(0.08f);
+            Assert.AreEqual(HitOutcome.Dodged, HitPlayer().Outcome);
+            Assert.Greater(gauge.Current, gaugeBefore + 10f, "完美闪避应恢复一截技能条");
+
+            float staminaBefore = stamina.Current;
+            yield return Click();
+            Assert.AreEqual(PlayerAttackKind.DodgeCounter, player.ActiveAttack, "翻滚中途就应能接上闪避反击");
+            Assert.AreEqual(staminaBefore, stamina.Current, 0.01f, "闪避反击不消耗体力");
+
+            yield return new WaitForSeconds(0.9f);
+            Assert.AreEqual(dummyHealth.Max - 30f, dummyHealth.Current, 0.01f, "闪避反击应命中刚才的攻击者");
+        }
+
+        [UnityTest]
+        public IEnumerator OrdinaryRoll_ThenLeftClick_IsJustALightAttack()
+        {
+            yield return Tap(keyboard.spaceKey);
+            yield return new WaitForSeconds(0.46f);
+            yield return Click();
+
+            Assert.AreEqual(PlayerAttackKind.Light, player.ActiveAttack, "没有完美闪避就没有闪避反击");
         }
 
         private DamageResult HitPlayer()

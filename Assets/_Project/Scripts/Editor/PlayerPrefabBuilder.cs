@@ -109,6 +109,14 @@ namespace BossFight.EditorTools
                 AddHurtbox(root);
                 WireM3(root);
 
+                // P1：特殊技能条 + 慢动作
+                var gauge = root.AddComponent<SkillGauge>();
+                var slowMotion = root.AddComponent<SlowMotionController>();
+                EditorWiring.SetRef(slowMotion, "input", input);
+                EditorWiring.SetRef(slowMotion, "player", player);
+                EditorWiring.SetRef(slowMotion, "gauge", gauge);
+                EditorWiring.SetRef(slowMotion, "health", root.GetComponent<Health>());
+
                 // 表现层（M7）：刀光、命中特效与音效、翻滚残影。阈值 7 m/s 介于奔跑（6.5）和翻滚（7.5）之间
                 Transform swordRoot = weaponHitbox.transform;
                 CombatFeedbackBuilder.AddHitEffects(root, new[] { weaponHitbox });

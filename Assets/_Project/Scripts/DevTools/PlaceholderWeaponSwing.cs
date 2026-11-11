@@ -112,7 +112,8 @@ namespace BossFight.DevTools
                 {
                     ApplyChop(0f);
                 }
-                else if (player != null && player.IsAttackWindingUp && player.ActiveAttack == PlayerAttackKind.Light)
+                else if (player != null && player.IsAttackWindingUp
+                    && (player.ActiveAttack is PlayerAttackKind.Light or PlayerAttackKind.DodgeCounter))
                 {
                     // 轻攻击前摇：剑从待机姿势迅速放平并向后拉开，随后的判定阶段从这个位置挥出
                     float pull = Mathf.Clamp01(player.AttackWindupRatio / cockBackPortion);

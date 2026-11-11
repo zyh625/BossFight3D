@@ -5,7 +5,8 @@
         "BossFight.Core",
         "BossFight.Combat",
         "BossFight.Character",
-        "Unity.Cinemachine"
+        "Unity.Cinemachine",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "autoReferenced": true
 }

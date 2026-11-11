@@ -142,6 +142,7 @@ namespace BossFight.Player
             {
                 damage.Outcome = HitOutcome.Dodged;
                 damage.Cancelled = true;
+                context.OpenDodgeCounter(damage.Info.Attacker != null ? damage.Info.Attacker.transform : null);
             }
             else if (machine.Current == context.Attack && context.Attack.TrySeeThrough())
             {

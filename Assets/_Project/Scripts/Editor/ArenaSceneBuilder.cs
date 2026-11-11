@@ -2,6 +2,7 @@ using BossFight.Boss;
 using BossFight.CameraRig;
 using BossFight.Combat;
 using BossFight.DevTools;
+using BossFight.Feedback;
 using BossFight.Player;
 using Unity.Cinemachine;
 using UnityEditor;
@@ -129,23 +130,62 @@ namespace BossFight.EditorTools
             lightObject.transform.rotation = Quaternion.Euler(55f, -30f, 0f);
             var light = lightObject.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.color = new Color(0.65f, 0.75f, 1f);
-            light.intensity = 1.4f;
+            light.color = new Color(1f, 0.97f, 0.92f);
+            light.intensity = 1.5f;
             light.shadows = LightShadows.Soft;
 
-            // 深色基调：不用天空盒，环境光压到很暗，亮度主要来自自发光 + Bloom
+            // 明亮基调：纯色天空 + 较强的环境光，霓虹灯带作为点缀
             RenderSettings.skybox = null;
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.16f, 0.19f, 0.28f);
+            RenderSettings.ambientLight = new Color(0.55f, 0.6f, 0.68f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Exponential;
-            RenderSettings.fogColor = new Color(0.015f, 0.02f, 0.035f);
-            RenderSettings.fogDensity = 0.015f;
+            RenderSettings.fogColor = new Color(0.74f, 0.82f, 0.92f);
+            RenderSettings.fogDensity = 0.008f;
 
             var volumeObject = new GameObject("Global Volume");
             var volume = volumeObject.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = GetOrCreateVolumeProfile();
+
+            // 慢动作滤镜：优先级更高的第二个全局 Volume，权重由 SlowMotionFilter 在运行时控制
+            var slowObject = new GameObject("SlowMotion Volume");
+            var slowVolume = slowObject.AddComponent<Volume>();
+            slowVolume.isGlobal = true;
+            slowVolume.priority = 10f;
+            slowVolume.weight = 0f;
+            slowVolume.sharedProfile = GetOrCreateSlowMotionProfile();
+            slowObject.AddComponent<SlowMotionFilter>();
+        }
+
+        private static VolumeProfile GetOrCreateSlowMotionProfile()
+        {
+            var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProjectPaths.SlowMotionVolumeProfile);
+            if (profile != null)
+            {
+                return profile;
+            }
+
+            profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            ProjectPaths.EnsureFolderFor(ProjectPaths.SlowMotionVolumeProfile);
+            AssetDatabase.CreateAsset(profile, ProjectPaths.SlowMotionVolumeProfile);
+
+            // 降饱和 + 偏冷色 + 提高对比，加重暗角，边缘带一点色散：一眼能看出"时间变慢了"
+            var color = AddOverride<ColorAdjustments>(profile);
+            color.saturation.Override(-55f);
+            color.contrast.Override(18f);
+            color.colorFilter.Override(new Color(0.78f, 0.9f, 1f));
+
+            var vignette = AddOverride<Vignette>(profile);
+            vignette.intensity.Override(0.42f);
+            vignette.smoothness.Override(0.5f);
+
+            var aberration = AddOverride<ChromaticAberration>(profile);
+            aberration.intensity.Override(0.5f);
+
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+            return profile;
         }
 
         private static VolumeProfile GetOrCreateVolumeProfile()
@@ -161,15 +201,15 @@ namespace BossFight.EditorTools
             AssetDatabase.CreateAsset(profile, ProjectPaths.ArenaVolumeProfile);
 
             var bloom = AddOverride<Bloom>(profile);
-            bloom.threshold.Override(1f);
-            bloom.intensity.Override(1.2f);
+            bloom.threshold.Override(1.25f);
+            bloom.intensity.Override(0.8f);
             bloom.scatter.Override(0.7f);
 
             var tonemapping = AddOverride<Tonemapping>(profile);
             tonemapping.mode.Override(TonemappingMode.ACES);
 
             var vignette = AddOverride<Vignette>(profile);
-            vignette.intensity.Override(0.28f);
+            vignette.intensity.Override(0.15f);
             vignette.smoothness.Override(0.4f);
 
             EditorUtility.SetDirty(profile);
@@ -191,11 +231,13 @@ namespace BossFight.EditorTools
             var cameraObject = new GameObject("Main Camera") { tag = "MainCamera" };
             var camera = cameraObject.AddComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.01f, 0.012f, 0.02f);
+            camera.backgroundColor = new Color(0.62f, 0.76f, 0.92f);
             camera.nearClipPlane = 0.1f;
             camera.farClipPlane = 200f;
             cameraObject.AddComponent<AudioListener>();
-            cameraObject.AddComponent<CinemachineBrain>();
+            // 相机按真实时间更新：慢动作时视角跟随和阻尼不变慢，转视角依然跟手
+            var brain = cameraObject.AddComponent<CinemachineBrain>();
+            brain.IgnoreTimeScale = true;
             camera.GetUniversalAdditionalCameraData().renderPostProcessing = true;
 
             // Cinemachine 3：一个 CinemachineCamera + 位置组件（OrbitalFollow）+ 朝向组件（RotationComposer）
