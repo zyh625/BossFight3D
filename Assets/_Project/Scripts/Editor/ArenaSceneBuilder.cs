@@ -225,6 +225,7 @@ namespace BossFight.EditorTools
             WireCombatCamera(orbitInput, player.GetComponent<LockOnTargeting>());
 
             rig.AddComponent<CursorLocker>();
+            rig.AddComponent<QuitOnHoldEscape>();
             return orbitInput;
         }
 

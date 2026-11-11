@@ -51,7 +51,8 @@ namespace BossFight.Player
         {
             health = GetComponent<Health>();
             damageReceiver = GetComponent<DamageReceiver>();
-            stamina.CostMultiplier = combatConfig.StaminaCostMultiplier;
+            // 调试用的体力倍率只在编辑器里生效；打出来的包永远使用正式数值，不会把调试设置带出去
+            stamina.CostMultiplier = Application.isEditor ? combatConfig.StaminaCostMultiplier : 1f;
             var buffer = new InputBuffer(combatConfig.InputBufferTime);
 
             context = new PlayerContext
